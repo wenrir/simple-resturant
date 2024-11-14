@@ -36,6 +36,21 @@ The motivation for recommending this method is not performance but convenience f
 **** Local
 TODO.
 
+** Overview
+The project comes with a Makefile that has a few commands to help you run the project.
+Please refer to the help rule for more information about the specifics of each rule.
+
+#+begin_src sh
+make help
+#+end_src
+
+To interact with the provided cargo makefile, please use the "task" rule.
+
+#+begin_src sh
+# For example
+make task run
+#+end_src
+
 ** Run
 TODO
 ** Test

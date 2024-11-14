@@ -1,0 +1,36 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lints.rust]
+# https://doc.rust-lang.org/rustc/lints/listing/index.html
+unsafe_code = "forbid"
+non_ascii_idents = "forbid"
+
+unused = { level = "deny", priority = -1 }
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+unused_extern_crates = "deny"
+unused_macros = "deny"
+unused_imports = "deny"
+deprecated_in_future = "deny"
+missing_docs = "deny"
+
+absolute_paths_not_starting_with_crate = "warn"
+unnameable_test_items = "warn"
+unit-bindings = "warn"
+unreachable-pub = "warn"
+
+[lints.clippy]
+enum_glob_use = "deny"
+unused_async = "deny"
+vec_init_then_push = "allow"
+
+[dev-dependencies]
+cargo-make = "0.37.23"
+
+[package.metadata.cargo-udeps.ignore]
+development = ["cargo-make"]

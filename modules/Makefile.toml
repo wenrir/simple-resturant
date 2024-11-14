@@ -1,0 +1,71 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+# Building
+[tasks.build]
+command = "cargo"
+args = ["build"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.build-release]
+command = "cargo"
+args = ["build", "--release"]
+
+# Running the program(s)
+[tasks.server]
+command = "cargo"
+args = ["run", "-p", "server"]
+
+[tasks.server-bin]
+dependencies=["build-release"]
+command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/server"
+
+[tasks.client]
+command = "cargo"
+args = ["run", "-p", "client"]
+
+[tasks.client-bin]
+dependencies=["build-release"]
+command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/client"
+
+[tasks.run]
+run_task = {name = ["client", "server"], parallel=true}
+
+[tasks.run-release]
+run_task = {name = ["client-bin", "server-bin"], parallel=true}
+
+# Formatting, Linting
+[tasks.fmt]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clippy]
+install_crate = "clippy"
+command = "cargo"
+args = [
+    "clippy",
+    "--all-features",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings",
+    "-W",
+    "clippy::all"]
+
+[tasks.format]
+dependencies=["clippy", "fmt"]
+
+# Documentation
+[tasks.doc]
+command = "cargo"
+args = ["doc"]
+
+# Test
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = ["clean"]

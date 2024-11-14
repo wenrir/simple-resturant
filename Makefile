@@ -7,7 +7,17 @@
 PROJECT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SHELL := /bin/sh
 .DEFAULT_GOAL := help
-args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
+args?=$(filter-out $@,$(MAKECMDGOALS))
+CARGO-exists: ; @which cargo > /dev/null 2>&1
+
+.PHONY: task
+## Run a specific task inside the cargo makefile, modules/Makefile.toml
+task: CARGO-exists check-args
+	@if [ -z "$(args)" ]; then \
+		echo "Please provide arguments to this rule." >&2; \
+		exit 1; \
+	fi
+	@cargo make --makefile $(PROJECT_DIR)/modules/Makefile.toml -t $(args) --cwd $(PROJECT_DIR)/modules
 
 .PHONY: help
 help:
