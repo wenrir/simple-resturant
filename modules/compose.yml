@@ -1,0 +1,28 @@
+x-command: &command
+  - "cargo"
+  - "run"
+
+x-build: &build
+  context: ..
+  target: base
+  dockerfile: ./modules/Dockerfile
+
+services:
+  server:
+    command: *command
+    build:
+      <<: *build
+      args:
+        - MODULE=server
+    platform: linux/x86_64
+    volumes:
+      - ./server:/server
+  client:
+    command: *command
+    build:
+      <<: *build
+      args:
+        - MODULE=client
+    platform: linux/x86_64
+    volumes:
+      - ./client:/client

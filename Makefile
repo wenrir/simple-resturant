@@ -8,7 +8,9 @@ PROJECT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SHELL := /bin/sh
 .DEFAULT_GOAL := help
 args?=$(filter-out $@,$(MAKECMDGOALS))
+compose := docker compose --file $(PROJECT_DIR)/docker-compose.yml
 CARGO-exists: ; @which cargo > /dev/null 2>&1
+DOCKER-exists: ; @which docker > /dev/null 2>&1
 
 .PHONY: task
 ## Run a specific task inside the cargo makefile, modules/Makefile.toml
@@ -18,6 +20,16 @@ task: CARGO-exists check-args
 		exit 1; \
 	fi
 	@cargo make --makefile $(PROJECT_DIR)/modules/Makefile.toml -t $(args) --cwd $(PROJECT_DIR)/modules
+
+.PHONY: run
+## Run Application using docker.
+## To run Specific Module in docker, use args=<MODULE_NAME> (e.g., server/client)
+run: DOCKER-exists
+	@if [ -n "$(args)" ]; then \
+		$(compose) run --rm $(args); \
+	else \
+		$(compose) up --build; \
+	fi
 
 .PHONY: help
 help:
