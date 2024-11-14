@@ -41,8 +41,9 @@ jobs:
             echo "matrix='false'" >> "$GITHUB_OUTPUT"
           else
             CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
-            MODULES=$(echo "$CHANGED_FILES" | tr ' ' '\n' | xargs dirname | awk -F '/' '/^(modules|services)\// {print "\"" $1 "/" $2 "\""}' | uniq | tr '\n' ',')
+            MODULES=$(echo "$CHANGED_FILES" | tr ' ' '\n' | xargs dirname | awk -F '/' '/^(modules)\// {print "\"" $1 "/" $2 "\""}' | uniq | tr '\n' ',')
             echo "matrix=[$(echo ${MODULES::-1})]" >> "$GITHUB_OUTPUT"
+          fi
 
   #TODO Use cargo makefile instead ;)
   cargo-build:
