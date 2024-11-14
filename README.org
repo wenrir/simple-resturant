@@ -29,6 +29,9 @@ TODO.
 ** Prerequisites
 *** Building/running
 **** Docker (Recommended)
++ Any modern version of docker. (https://docs.docker.com/build/)
++ Any version of docker compose.(https://docs.docker.com/compose/)
+
 This project comes with an docker image to reduce the overhead of setting up the build system locally.
 
 The motivation for recommending this method is not performance but convenience for the reviewer. Please keep this in mind.
@@ -52,6 +55,20 @@ make task run
 #+end_src
 
 ** Run
-TODO
+*** Docker
+To run both server and client.
+#+begin_src sh
+make run
+#+end_src
+
+To run a specific module
+#+begin_src sh
+make run server
+#+end_src
+*** Local
+
+#+begin_src sh
+make task run
+#+end_src
 ** Test
 TODO

@@ -1,0 +1,13 @@
+services:
+  server:
+    container_name: restaurant-server
+    extends:
+      service: server
+      file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
+    network_mode: "host" # TODO only expose necessary ports.
+  client:
+    container_name: restaurant-client
+    extends:
+      service: client
+      file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
+    network_mode: "host" # TODO only expose necessary ports.
