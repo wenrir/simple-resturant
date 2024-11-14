@@ -3,6 +3,15 @@ name = "server"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[lib]
+name = "server"
+path = "src/lib.rs"
+
+
 [dependencies]
 
 [lints.rust]
