@@ -1,0 +1,162 @@
+name: "Validate PR"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - main
+
+concurrency:
+  group: validate-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  change:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.changed_modules.outputs.matrix }}
+      any: ${{ steps.changed_modules.outputs.any }}
+    name: Test changed-files
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            modules/**
+          files_ignore: |
+            modules/.cargo/**
+            modules/Dockerfile
+            modules/*.toml
+      - id: changed_modules
+        run: |
+          ANY_CHANGED_FILES="${{ steps.changed-files.outputs.any_changed || 'false' }}"
+          echo "any=${ANY_CHANGED_FILES}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${ANY_CHANGED_FILES}" == 'false' ]]; then
+            echo "matrix='false'" >> "$GITHUB_OUTPUT"
+          else
+            CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+            MODULES=$(echo "$CHANGED_FILES" | tr ' ' '\n' | xargs dirname | awk -F '/' '/^(modules|services)\// {print "\"" $1 "/" $2 "\""}' | uniq | tr '\n' ',')
+            echo "matrix=[$(echo ${MODULES::-1})]" >> "$GITHUB_OUTPUT"
+
+  #TODO Use cargo makefile instead ;)
+  cargo-build:
+    name: Cargo Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: change
+    if: ${{ needs.change.outputs.any == 'true' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.change.outputs.matrix) }}
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: cargo build
+        working-directory: ${{ matrix.module }}
+        run: cargo b -p $(basename ${{ matrix.module }}) --manifest-path Cargo.toml --all-targets --all-features
+
+  cargo-test:
+    name: Cargo test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: change
+    if: ${{ needs.change.outputs.any == 'true' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.change.outputs.matrix) }}
+
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cargo test
+        working-directory: ${{ matrix.module }}
+        run: cargo test -p $(basename ${{ matrix.module }} ) --manifest-path Cargo.toml --all-targets --all-features
+
+  cargo-clippy:
+    name: Cargo clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: change
+    if: ${{ needs.change.outputs.any == 'true' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.change.outputs.matrix) }}
+
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+
+      - name: Clippy Check
+        working-directory: ${{ matrix.module }}
+        run: cargo clippy -p $(basename ${{ matrix.module }}) --manifest-path Cargo.toml --all-targets --all-features -- -Dwarnings
+
+  cargo-udeps:
+    name: Cargo Udeps
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: change
+    if: ${{ needs.change.outputs.any == 'true' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.change.outputs.matrix) }}
+
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Run cargo-udeps
+        run: |
+          cd ${{ matrix.module }}
+          echo "$(pwd)"
+          cargo install cargo-udeps
+          echo "Udeps install complete."
+          cargo udeps -p $(basename ${{ matrix.module }}) --manifest-path Cargo.toml --all-targets
+
+
+  cargo-fmt:
+    name: Cargo fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: change
+    if: ${{ needs.change.outputs.any == 'true' }}
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.change.outputs.matrix) }}
+
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+
+      - name: Rustfmt Check
+        working-directory: ${{ matrix.module }}
+        run: cargo fmt -p $(basename ${{ matrix.module }}) --manifest-path Cargo.toml --check
