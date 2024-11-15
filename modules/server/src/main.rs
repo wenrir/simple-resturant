@@ -31,23 +31,6 @@ async fn main() {
                 error!("Server exited unexpectedly");
             }
         }
-        // let runtime = tokio::runtime::Builder::new_current_thread()
-        //     .enable_all()
-        //     .build()
-        //     .expect("failed to create Tokio runtime");
-        // {
-        //     // Spawn the application.
-        //     runtime.spawn(async move {
-        //         match server.run().await {
-        //             Ok(_) => {
-        //                 info!("Server process finished");
-        //             }
-        //             Err(_) => {
-        //                 error!("Server exited unexpectedly");
-        //             }
-        //         }
-        //     });
-        // }
     }
     fastrace::flush();
 }
