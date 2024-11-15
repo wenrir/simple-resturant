@@ -3,6 +3,8 @@ services:
     container_name: restaurant-server
     environment:
       DATABASE_URL: "postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin}@${POSTGRES_HOST:-localhost}/${POSTGRES_DB:-restaurant-db}"
+      HOST_URL: "${HOST_URL:-localhost}"
+      HOST_PORT: "${HOST_PORT:-8080}"
     extends:
       service: server
       file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}

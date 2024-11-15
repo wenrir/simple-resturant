@@ -1,6 +1,8 @@
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 DATABASE_URL="${DATABSE_URL:postgres://admin:admin@localhost/restaurant-db}"
+HOST_URL="${HOST_URL:localhost}"
+HOST_PORT="${HOST_PORT:8080}"
 
 # Building
 [tasks.build]
