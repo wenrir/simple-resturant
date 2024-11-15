@@ -26,9 +26,9 @@ task: CARGO-exists check-args
 ## To run Specific Module in docker, use args=<MODULE_NAME> (e.g., server/client)
 run: DOCKER-exists
 	@if [ -n "$(args)" ]; then \
-		$(compose) run --rm $(args); \
+		$(compose) run --build --rm $(args); \
 	else \
-		$(compose) up --build; \
+		$(compose) up --build -d; \
 	fi
 
 .PHONY: help

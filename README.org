@@ -37,7 +37,55 @@ This project comes with an docker image to reduce the overhead of setting up the
 The motivation for recommending this method is not performance but convenience for the reviewer. Please keep this in mind.
 
 **** Local
-TODO.
+#+name: rustup
+#+begin_src shell
+rustup --version
+#+end_src
+
+#+RESULTS:
+: rustup 1.27.1 (54dd3d00f 2024-04-24)
+
+#+name: Cargo
+#+begin_src shell
+cargo --version
+#+end_src
+
+#+RESULTS:
+: cargo 1.79.0 (ffa9cf99a 2024-06-03)
+
+#+name: Postgresql libs
+#+begin_src shell
+pacman -Q --info postgresql-libs
+#+end_src
+
+#+RESULTS: Postgresql libs
+| Name         | :      | postgresql-libs             |                        |                        |               |                   |          |          |      |      |
+| Version      | :      | 16.3-4                      |                        |                        |               |                   |          |          |      |      |
+| Description  | :      | Libraries                   | for                    | use                    | with          | PostgreSQL        |          |          |      |      |
+| Architecture | :      | x86_64                      |                        |                        |               |                   |          |          |      |      |
+| URL          | :      | https://www.postgresql.org/ |                        |                        |               |                   |          |          |      |      |
+| Licenses     | :      | PostgreSQL                  |                        |                        |               |                   |          |          |      |      |
+| Groups       | :      | None                        |                        |                        |               |                   |          |          |      |      |
+| Provides     | :      | libecpg.so=6-64             | libecpg_compat.so=3-64 | libpgtypes.so=3-64     | libpq.so=5-64 | postgresql-client |          |          |      |      |
+| Depends      | On     | :                           | glibc                  | krb5                   | libldap       | lz4               |  openssl | readline | zlib | zstd |
+| Optional     | Deps   | :                           | None                   |                        |               |                   |          |          |      |      |
+| Required     | By     | :                           | None                   |                        |               |                   |          |          |      |      |
+| Optional     | For    | :                           | qt5-base               | qt6-base               |               |                   |          |          |      |      |
+| Conflicts    | With   | :                           | postgresql-client      |                        |               |                   |          |          |      |      |
+| Replaces     | :      | None                        |                        |                        |               |                   |          |          |      |      |
+| Installed    | Size   | :                           | 8.5                    | MiB                    |               |                   |          |          |      |      |
+| Packager     | :      | Antonio                     | Rojas                  | <arojas@archlinux.org> |               |                   |          |          |      |      |
+| Build        | Date   | :                           | Sun                    | 1                      | Sep           | 2024              | 06:53:11 | PM       | UTC  |      |
+| Install      | Date   | :                           | Fri                    | 15                     | Nov           | 2024              | 02:39:12 | AM       | UTC  |      |
+| Install      | Reason | :                           | Explicitly             | installed              |               |                   |          |          |      |      |
+| Install      | Script | :                           | No                     |                        |               |                   |          |          |      |      |
+| Validated    | By     | :                           | Signature              |                        |               |                   |          |          |      |      |
+|              |        |                             |                        |                        |               |                   |          |          |      |      |
+
+#+name: Alternative: install libpq-dev
+#+begin_src
+apt install libpq-dev
+#+end_src
 
 ** Overview
 The project comes with a Makefile that has a few commands to help you run the project.
@@ -72,3 +120,10 @@ make task run
 #+end_src
 ** Test
 TODO
+
+** Migrate db
+Migration is done automatically on start, but in case you'd need to migrate it locally.
+
+#+begin_src sh
+make task migrate
+#+end_src

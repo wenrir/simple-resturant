@@ -1,5 +1,6 @@
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+DATABASE_URL="${DATABSE_URL:postgres://admin:admin@localhost/restaurant-db}"
 
 # Building
 [tasks.build]
@@ -69,3 +70,15 @@ args = ["doc"]
 command = "cargo"
 args = ["test"]
 dependencies = ["clean"]
+
+# Migrate
+[tasks.dbsetup]
+install_create = "diesel_cli"
+command = "diesel"
+args = ["setup"]
+
+[tasks.migrate]
+install_create = "diesel_cli"
+command = "diesel"
+args = ["migration", "run", "--database-url", "${DATABASE_URL}"]
+dependencies = ["dbsetup"]

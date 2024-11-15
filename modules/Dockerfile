@@ -1,7 +1,7 @@
 FROM rust:slim-bookworm as base
 ARG MODULE
 ARG OPTIONAL_DEPS
-ARG ADDITIONAL_PACKAGES="curl ca-certificates "
+ARG ADDITIONAL_PACKAGES="curl ca-certificates libpq-dev"
 
 WORKDIR /${MODULE}
 
