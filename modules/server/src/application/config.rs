@@ -7,3 +7,6 @@ const DEFAULT_CONFIG_PATH: &str = if cfg!(debug_assertions) {
 } else {
     "./config.toml"
 };
+
+pub(crate) const HOST_URL: &str = "127.0.0.1";
+pub(crate) const HOST_PORT: &str = "8080";
