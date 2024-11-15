@@ -1,6 +1,8 @@
 services:
   server:
     container_name: restaurant-server
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin}@${POSTGRES_HOST:-localhost}/${POSTGRES_DB:-restaurant-db}"
     extends:
       service: server
       file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
@@ -11,3 +13,23 @@ services:
       service: client
       file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
     network_mode: "host" # TODO only expose necessary ports.
+  db:
+    image: postgres:latest
+    container_name: restaurant-db
+    environment: # Would obviously be secret in production!
+      POSTGRES_USER: "${POSTGRES_USER:-admin}"
+      POSTGRES_DB: "${POSTGRES_DB:-restaurant-db}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-admin}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d restaurant-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
