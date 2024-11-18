@@ -13,7 +13,7 @@ pub(crate) struct ServerState {
 }
 
 impl ServerState {
-    pub(crate) async fn new() -> Result<Self> {
+    pub(crate) fn new() -> Result<Self> {
         Ok(ServerState {
             order_repository: OrderFactory {},
         })
