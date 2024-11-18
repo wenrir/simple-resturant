@@ -11,6 +11,7 @@ use axum::{
 use diesel::{Connection, PgConnection};
 use serde::Serialize;
 use std::env::var;
+use utoipa::ToSchema;
 
 #[macro_export]
 /// Macro to connect to database as a mutable reference (otherwise return ServerError)
@@ -34,7 +35,7 @@ pub(crate) fn db_connect() -> Result<PgConnection> {
     Ok(conn)
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub(crate) struct ServerError {
     error: String,
 }

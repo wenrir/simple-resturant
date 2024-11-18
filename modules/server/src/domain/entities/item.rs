@@ -2,8 +2,11 @@
 use super::items;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Identifiable, Selectable, Queryable, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(
+    Identifiable, Selectable, Queryable, Debug, Deserialize, Serialize, PartialEq, ToSchema,
+)]
 #[diesel(table_name = items)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct Item {
