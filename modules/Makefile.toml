@@ -67,11 +67,10 @@ dependencies=["clippy", "fmt"]
 command = "cargo"
 args = ["doc"]
 
-# Test
 [tasks.test]
 command = "cargo"
 args = ["test"]
-dependencies = ["clean"]
+dependencies = ["clean", "migrate"]
 
 # Migrate
 [tasks.dbsetup]

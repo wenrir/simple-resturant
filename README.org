@@ -119,7 +119,9 @@ make run server
 make task run
 #+end_src
 ** Test
-TODO
+#+begin_src sh
+make test
+#+end_src
 
 ** Migrate db
 Migration is done automatically on start, but in case you'd need to migrate it locally.

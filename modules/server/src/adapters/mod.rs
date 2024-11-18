@@ -35,7 +35,7 @@ pub(crate) fn db_connect() -> Result<PgConnection> {
     Ok(conn)
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToSchema, Debug)]
 pub(crate) struct ServerError {
     error: String,
 }

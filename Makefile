@@ -31,6 +31,18 @@ run: DOCKER-exists
 		$(compose) up --build -d; \
 	fi
 
+.PHONY: test
+## Run test with test db.
+test: DOCKER-exists
+	$(compose) down --volumes
+	$(compose) up db -d
+	@until docker compose logs db | grep -q "PostgreSQL init process complete"; do \
+		echo "Database is not ready yet. Retrying in 2 seconds..."; \
+		sleep 2; \
+	done
+	@cargo make --makefile $(PROJECT_DIR)/modules/Makefile.toml -t test --cwd $(PROJECT_DIR)/modules
+	$(compose) down --volumes
+
 .PHONY: help
 help:
 	@echo "$$(tput setaf 2)Rules:$$(tput sgr0)";sed -ne"/^## /{h;s/.*//;:d" -e"H;n;s/^## /---/;td" -e"s/:.*//;G;s/\\n## /===/;s/\\n//g;p;}" ${MAKEFILE_LIST}|awk -F === -v n=$$(tput cols) -v i=4 -v a="$$(tput setaf 6)" -v z="$$(tput sgr0)" '{printf"- %s%s%s\n",a,$$1,z;m=split($$2,w,"---");l=n-i;for(j=1;j<=m;j++){l-=length(w[j])+1;if(l<= 0){l=n-i-length(w[j])-1;}printf"%*s%s\n",-i," ",w[j];}}'

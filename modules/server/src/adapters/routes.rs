@@ -83,7 +83,7 @@ async fn get_order_by_item(
 #[utoipa::path(
         post,
         request_body = OrderCreateRequest,
-        path = "/api/v1/orders/",
+        path = "/api/v1/orders",
         responses(
             (status = 200, description = "Success created order", body = [String]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -140,7 +140,7 @@ fn order_routes() -> Router<ServerState> {
 #[utoipa::path(
         get,
         request_body = ItemGetRequest,
-        path = "/api/v1/item",
+        path = "/api/v1/items",
         responses(
             (status = 200, description = "Successfully found item", body = [ItemResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -161,7 +161,7 @@ async fn get_item(
 #[utoipa::path(
         post,
         request_body = ItemCreateRequest,
-        path = "/api/v1/item",
+        path = "/api/v1/items",
         responses(
             (status = 200, description = "Successfully created item", body = [ItemResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -269,4 +269,109 @@ pub(crate) fn routes(state: ServerState) -> Router {
         .nest("/api/v1/tables", customer_routes())
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", Doc::openapi()));
     router.fallback(api_fallback).with_state(state)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum_test::TestServer;
+    fn get_test_routes() -> Router {
+        routes(ServerState::new().expect("unable to create server state."))
+    }
+    use serde_json::json;
+    fn build_test_server() -> TestServer {
+        let r = get_test_routes();
+
+        TestServer::builder()
+            .save_cookies()
+            .expect_success_by_default()
+            .mock_transport()
+            .build(r)
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_create_item() {
+        let server = build_test_server();
+        {
+            let response = server
+                .post(&"/api/v1/items")
+                .json(&json!({
+                    "description": "Some good tasting item!",
+                    "estimated_minutes": 5
+                }))
+                .await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+        {
+            let response = server
+                .get("/api/v1/items")
+                .json(&json!({
+                    "id": 1,
+                }))
+                .await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+        {
+            let response = server
+                .get("/api/v1/items")
+                .json(&json!({
+                    "id": 10,
+                }))
+                .expect_failure()
+                .await;
+            assert_eq!(response.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_create_customer() {
+        let server = build_test_server();
+        {
+            let response = server.post(&"/api/v1/tables/check_in").await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+        {
+            let response = server
+                .get("/api/v1/tables")
+                .json(&json!({
+                    "id": 1,
+                }))
+                .await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_create_order() {
+        let server = build_test_server();
+        {
+            let response = server.post(&"/api/v1/tables/check_in").await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+        {
+            let response = server
+                .post(&"/api/v1/items")
+                .json(&json!({
+                    "description": "Some good tasting item!",
+                    "estimated_minutes": 5
+                }))
+                .await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+
+        {
+            let response = server
+                .post(&"/api/v1/orders")
+                .json(&json!({
+                    "table_number": 1,
+                    "item_id": 1,
+                    "customer_id": 1,
+                    "quantity": 10,
+
+                }))
+                .await;
+            assert_eq!(response.status_code(), StatusCode::OK);
+        }
+    }
 }
