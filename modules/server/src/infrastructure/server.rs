@@ -10,9 +10,7 @@ use crate::application::config::{HOST_PORT, HOST_URL};
 
 /// Creates a server object!
 pub(crate) struct Server {
-    #[allow(unused)]
     pub(crate) state: ServerState,
-    #[allow(unused)]
     socket: TcpListener,
 }
 

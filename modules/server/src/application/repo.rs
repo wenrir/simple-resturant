@@ -10,7 +10,6 @@ use async_trait::async_trait;
 
 #[async_trait(?Send)]
 pub(crate) trait OrderRepository {
-    #[allow(unused)] // TODO
     fn find_by_table_number(&self, number: i32) -> ServerResult<Vec<Order>>;
     fn find_specific_item(&self, number: i32, item: i32) -> ServerResult<Vec<Order>>;
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
@@ -20,18 +19,14 @@ pub(crate) trait OrderRepository {
 
 #[async_trait(?Send)]
 pub(crate) trait ItemRepository {
-    #[allow(unused)] // TODO
     fn create(&self, item: &NewItem) -> ServerResult<Item>;
-    #[allow(unused)] // TODO
     fn get(&self, id: &i32) -> ServerResult<Item>;
     // Other traits goes here.
 }
 
 #[async_trait(?Send)]
 pub(crate) trait CustomerRepository {
-    #[allow(unused)] // TODO
     fn create(&self, item: &NewCustomer) -> ServerResult<Customer>;
-    #[allow(unused)] // TODO
     fn get(&self, id: &i32) -> ServerResult<Customer>;
     // Other traits goes here.
 }

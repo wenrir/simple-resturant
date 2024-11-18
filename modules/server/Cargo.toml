@@ -52,6 +52,7 @@ unused_async = "deny"
 vec_init_then_push = "allow"
 
 [dev-dependencies]
+axum-test = "16.4.0"
 cargo-make = "0.37.23"
 
 [package.metadata.cargo-udeps.ignore]
