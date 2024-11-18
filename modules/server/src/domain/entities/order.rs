@@ -1,5 +1,4 @@
 //! Order
-use std::time::SystemTime;
 
 use super::{customer::Customer, item::Item, orders};
 use diesel::prelude::*;

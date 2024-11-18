@@ -2,7 +2,6 @@
 use super::customers;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
 use utoipa::ToSchema;
 #[derive(
     Identifiable, Selectable, Queryable, Debug, Deserialize, Serialize, PartialEq, ToSchema,
