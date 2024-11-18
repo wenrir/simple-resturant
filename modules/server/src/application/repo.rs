@@ -1,12 +1,14 @@
-use crate::domain::entities::order::{NewOrder, Order};
-use anyhow::Result;
+use crate::{
+    adapters::ServerResult, // Todo, move me out of adapter.
+    domain::entities::order::{NewOrder, Order},
+};
 use async_trait::async_trait;
 
 #[allow(dead_code)]
 #[async_trait(?Send)]
 pub(crate) trait OrderRepository {
-    async fn find_by_table_number(&self, number: i32) -> Result<Order>;
-    async fn create_order(&self, order: &NewOrder) -> Result<Order>;
+    fn find_by_table_number(&self, number: i32) -> ServerResult<Order>;
+    fn create_order(&self, order: &NewOrder) -> ServerResult<Order>;
     // Other traits goes here.
 }
 
@@ -15,5 +17,5 @@ pub(crate) trait OrderRepository {
 #[allow(dead_code)]
 #[async_trait(?Send)]
 pub(crate) trait AbstractFeature<T> {
-    async fn execute(&self) -> Result<T>;
+    async fn execute(&self) -> ServerResult<T>;
 }
