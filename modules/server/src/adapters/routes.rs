@@ -1,18 +1,22 @@
 //! Routes
 
-use crate::adapters::state::ServerState;
-use anyhow::Result;
+use crate::{
+    adapters::state::ServerState, application::repo::OrderRepository,
+    domain::entities::order::NewOrder,
+};
 use axum::{
     extract::{Request, State},
     http::StatusCode,
-    middleware,
-    middleware::Next,
-    response::{IntoResponse, Response},
+    middleware::{self, Next},
+    response::Response,
     routing::{get, post},
     Json, Router,
 };
-use log::info;
-use serde::Serialize;
+
+use super::{
+    dto::{request::OrderRequest, response::OrderResponse},
+    ServerResult,
+};
 
 #[allow(unused)] // Fallback function is used, false positive.
 async fn api_fallback() -> (StatusCode, Json<serde_json::Value>) {
@@ -22,71 +26,54 @@ async fn api_fallback() -> (StatusCode, Json<serde_json::Value>) {
     )
 }
 
-//fn create_response<T>(result: T) -> Result<Json<T>>
-//where
-//    T: serde::Serialize,
-//{
-//    let json = serde_json::to_string_pretty(&result)?;
-//    let response = (
-//        StatusCode::OK,
-//        [
-//            (CONTENT_TYPE, "application/json"),
-//            (ACCESS_CONTROL_ALLOW_ORIGIN, "*"),
-//        ],
-//        json,
-//    );
-//    Ok(response)
-//}
-
-async fn is_checked_table_checked_in(req: Request, next: Next) -> Result<Response, StatusCode> {
-    //Err(StatusCode::UNAUTHORIZED)
-    //if token_is_valid(token) => {
-    info!("here..");
+async fn is_checked_table_checked_in(req: Request, next: Next) -> ServerResult<Response> {
     let response = next.run(req).await;
     Ok(response)
-    //    }
-    //    _ => {
-    //        Err(StatusCode::UNAUTHORIZED)
-    //    }
 }
-
-#[derive(Serialize)]
-pub(crate) struct OrderReponse {
-    status: String,
-}
-//async fn order_handler(State(state): State<Arc<ServerState>>) -> Result<Json<OrderReponse>> {
-//    state;
-//    Ok(Json(OrderReponse {
-//        status: "Ok".to_string(),
-//    }))
-//    //async fn handler() -> Result<()> {
-//    //diesel::insert_into(posts::table)
-//    //    .values(&new_post)
-//    //    .returning(Post::as_returning())
-//    //    .get_result(conn)
-//    //    .expect("Error saving new post");
-//}
-async fn order_handler(State(_state): State<ServerState>) -> impl IntoResponse {
-    Json(OrderReponse {
+async fn get_order(
+    State(_state): State<ServerState>,
+    Json(_req): Json<OrderRequest>,
+) -> ServerResult<Json<OrderResponse>> {
+    let result = OrderResponse {
         status: "OK".to_string(),
-    })
+    };
+    // TODO call repo her
+    Ok(Json(result))
 }
 
+async fn create_order(
+    State(state): State<ServerState>,
+    Json(req): Json<OrderRequest>,
+) -> ServerResult<Json<OrderResponse>> {
+    let order = NewOrder {
+        table_number: &req.table_number,
+    };
+    // create order ..
+    match state.order_repository.create_order(&order) {
+        Ok(res) => Ok(Json(OrderResponse {
+            status: res.table_number.to_string(),
+        })),
+        Err(err) => Err(err),
+    }
+}
 fn order_routes() -> Router<ServerState> {
     Router::new()
-        .route("/", post({}).get(order_handler))
-        .route("/users/:id", get({}))
+        .route("/:id", post(create_order).get(|| async {}))
+        .route(
+            "/:id/:items",
+            get(get_order)
+                .patch(|| async {
+                    // Update order
+                })
+                .delete(|| async {
+                    // delete order
+                }),
+        )
         .route_layer(middleware::from_fn(is_checked_table_checked_in))
-
-    //Router::new()
-    //    .route("/hello", get(order_handler))
-    //    .fallback(api_fallback)
 }
 
-//TODO CANNOT SHARE PGCONNECTION!!
 /// Creates server application routes.
 pub(crate) fn routes(state: ServerState) -> Router {
-    let router = Router::new().nest("/api/v1/order", order_routes()); // Todo add open api json spec here.
-                                                                      //let router = order_routes(router);
-    router.with_state(state)
+    let router = Router::new().nest("/api/v1/orders", order_routes()); // Todo add open api json spec here.
+    router.fallback(api_fallback).with_state(state)
 }

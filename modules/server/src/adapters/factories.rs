@@ -3,20 +3,20 @@
 use std::time::SystemTime;
 
 use async_trait::async_trait;
-use diesel::PgConnection;
+use serde::Deserialize;
 
 use crate::application::repo::OrderRepository;
 use crate::domain::entities::order::{NewOrder, Order};
-use anyhow::Result;
+
+use super::ServerResult;
 
 #[allow(dead_code)]
-pub(crate) struct OrderFactory {
-    db_connection: PgConnection,
-}
+#[derive(Clone, Deserialize)]
+pub(crate) struct OrderFactory {}
 
 #[async_trait(?Send)]
 impl OrderRepository for OrderFactory {
-    async fn find_by_table_number(&self, number: i32) -> Result<Order> {
+    fn find_by_table_number(&self, number: i32) -> ServerResult<Order> {
         //self.order_repository.find_by_table_number(number).await?
         Ok(Order {
             id: 1,
@@ -24,7 +24,7 @@ impl OrderRepository for OrderFactory {
             table_number: number,
         }) // Dummy data until implemented.
     }
-    async fn create_order(&self, o: &NewOrder) -> Result<Order> {
+    fn create_order(&self, o: &NewOrder) -> ServerResult<Order> {
         Ok(Order {
             id: 1,
             published_at: SystemTime::now(),
