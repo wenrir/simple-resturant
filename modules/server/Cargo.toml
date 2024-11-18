@@ -15,6 +15,7 @@ path = "src/lib.rs"
 anyhow = "1.0.93"
 async-trait = "0.1.83"
 axum = { version = "0.7.9", features = ["macros", "ws"] }
+chrono = "0.4.38"
 diesel = { version = "2.2.4", features = ["postgres"] }
 diesel_migrations = "2.2.0"
 env_logger = "0.11.5"
@@ -23,6 +24,8 @@ log = "0.4.22"
 serde = "1.0.215"
 serde_json = "1.0.132"
 tokio = { version = "1.41.1", features = ["full"] }
+utoipa = { version = "5.2.0", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "8.0.3", features = ["axum"] }
 
 [lints.rust]
 # https://doc.rust-lang.org/rustc/lints/listing/index.html

@@ -7,7 +7,7 @@ pub(crate) mod order;
 diesel::table! {
     customers (id) {
         id -> Int4,
-        checked_in_time -> Timestamp,
+        checked_in_time -> Text,
         total -> Int4,
     }
 }
@@ -24,7 +24,7 @@ diesel::table! {
     orders (id) {
         id -> Int4,
         table_number -> Int4,
-        published_at -> Timestamp,
+        published_at -> Text,
         quantity -> Int4,
         item_id -> Int4,
         customer_id -> Int4,

@@ -1,7 +1,5 @@
 //! Routes
 
-use std::time::SystemTime;
-
 use crate::{
     adapters::state::ServerState,
     application::repo::{CustomerRepository, ItemRepository, OrderRepository},
@@ -15,6 +13,8 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use super::{
     dto::{
@@ -37,7 +37,17 @@ async fn is_checked_table_checked_in(req: Request, next: Next) -> ServerResult<R
     Ok(response)
 }
 
+/// Find order by table number.
 #[fastrace::trace]
+#[utoipa::path(
+        get,
+        request_body = i32,
+        path = "/api/v1/orders/:id",
+        responses(
+            (status = 200, description = "Success found order", body = [OrderResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn get_orders(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
@@ -48,7 +58,17 @@ async fn get_orders(
     }
 }
 
+/// Find order item by table number.
 #[fastrace::trace]
+#[utoipa::path(
+        get,
+        request_body = (i32, i32),
+        path = "/api/v1/orders/:id/:item",
+        responses(
+            (status = 200, description = "Success found item in order", body = [OrderResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn get_order_by_item(
     State(state): State<ServerState>,
     Path((table_id, item_id)): Path<(i32, i32)>,
@@ -59,15 +79,26 @@ async fn get_order_by_item(
     }
 }
 
+/// Create an order.
+#[utoipa::path(
+        post,
+        request_body = OrderCreateRequest,
+        path = "/api/v1/orders/",
+        responses(
+            (status = 200, description = "Success created order", body = [String]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn create_order(
     State(state): State<ServerState>,
     Json(req): Json<OrderCreateRequest>,
 ) -> ServerResult<String> {
+    use chrono::prelude::*;
     let order = NewOrder {
         table_number: &req.table_number,
         item_id: &req.item_id,
         customer_id: &req.customer_id,
-        published_at: &SystemTime::now(),
+        published_at: &Local::now().to_rfc3339(),
         quantity: &req.quantity,
     };
     match state.order_repository.create(&order) {
@@ -76,6 +107,16 @@ async fn create_order(
     }
 }
 
+/// Delete an order.
+#[utoipa::path(
+        delete,
+        request_body = (i32,i32),
+        path = "/api/v1/orders/:id",
+        responses(
+            (status = 200, description = "Success deleted order", body = [String]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn delete_order(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
@@ -94,7 +135,17 @@ fn order_routes() -> Router<ServerState> {
 }
 
 // TODO These can be converted to macros
+/// Get item.
 #[fastrace::trace]
+#[utoipa::path(
+        get,
+        request_body = ItemGetRequest,
+        path = "/api/v1/item",
+        responses(
+            (status = 200, description = "Successfully found item", body = [ItemResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn get_item(
     State(state): State<ServerState>,
     Json(req): Json<ItemGetRequest>,
@@ -105,7 +156,17 @@ async fn get_item(
     }
 }
 
+/// Create item.
 #[fastrace::trace]
+#[utoipa::path(
+        post,
+        request_body = ItemCreateRequest,
+        path = "/api/v1/item",
+        responses(
+            (status = 200, description = "Successfully created item", body = [ItemResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn create_item(
     State(state): State<ServerState>,
     Json(req): Json<ItemCreateRequest>,
@@ -124,6 +185,16 @@ fn item_routes() -> Router<ServerState> {
     Router::new().route("/", post(create_item).get(get_item))
 }
 
+/// Get customer.
+#[utoipa::path(
+        get,
+        request_body = CustomerGetRequest,
+        path = "/api/v1/customer",
+        responses(
+            (status = 200, description = "Successfully found item", body = [CustomerResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn get_customer(
     State(state): State<ServerState>,
     Json(req): Json<CustomerGetRequest>,
@@ -134,9 +205,19 @@ async fn get_customer(
     }
 }
 
+/// Create customer.
+#[utoipa::path(
+        post,
+        path = "/api/v1/customer/check_in",
+        responses(
+            (status = 200, description = "Checks in a customer", body = [CustomerResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
 async fn create_customer(State(state): State<ServerState>) -> ServerResult<Json<CustomerResponse>> {
+    use chrono::prelude::*;
     let customer = &NewCustomer {
-        checked_in_time: &SystemTime::now(),
+        checked_in_time: &Local::now().to_rfc3339(),
         total: &0_i32,
     };
     match state.customer_repository.create(customer) {
@@ -150,12 +231,42 @@ fn customer_routes() -> Router<ServerState> {
         .route("/", get(get_customer))
         .route("/check_in", post(create_customer))
 }
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        version = "v0.1.0",
+        title = "Simple Resturant API",
+    ),
+    paths(
+
+        // Customer endpoints
+        get_customer,
+        create_customer,
+        // Item endpoints
+        get_item,
+        create_item,
+
+        // Order endpoints
+        create_order,
+        get_orders,
+        delete_order,
+        get_order_by_item,
+    ),
+    components(
+        schemas(
+        CustomerGetRequest, ItemCreateRequest, ItemGetRequest, OrderCreateRequest,
+        CustomerResponse, ItemResponse, OrderResponse,
+        )
+    ),
+)]
+pub(crate) struct Doc {}
 
 /// Creates server application routes.
 pub(crate) fn routes(state: ServerState) -> Router {
     let router = Router::new()
         .nest("/api/v1/orders", order_routes())
         .nest("/api/v1/items", item_routes())
-        .nest("/api/v1/tables", customer_routes()); // Todo add open api json spec here.
+        .nest("/api/v1/tables", customer_routes())
+        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", Doc::openapi()));
     router.fallback(api_fallback).with_state(state)
 }
