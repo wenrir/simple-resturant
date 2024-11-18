@@ -1,13 +1,27 @@
 //! application/features.rs
 //! Application features (usecases)
+//! TODO use these inside
 
-use async_trait::async_trait;
+use anyhow::Result;
+use diesel::prelude::*;
+use diesel::PgConnection;
+use diesel::{QueryDsl, SelectableHelper};
 
-use super::repo::{AbstractFeature, OrderRepository};
-use crate::{
-    adapters::ServerResult,
-    domain::entities::order::{NewOrder, Order},
-};
+use crate::domain::entities::customer::Customer;
+use crate::domain::entities::customers::total;
+
+use super::repo::OrderRepository;
+
+/// Get all active customers, i.e. customers which has not paid yet.
+/// (Could obviously be handled with another type of flag.)
+pub(crate) fn get_all_active_customers(conn: &mut PgConnection) -> Result<Vec<Customer>> {
+    use crate::domain::entities::customers;
+    let all = customers::table
+        .select(Customer::as_select())
+        .filter(total.eq(0))
+        .load(conn)?;
+    Ok(all)
+}
 
 #[allow(dead_code)]
 pub(crate) struct OrderFeature<'a> {
@@ -25,12 +39,12 @@ impl<'a> OrderFeature<'a> {
     }
 }
 
-#[async_trait(?Send)]
-impl<'a> AbstractFeature<Order> for OrderFeature<'a> {
-    async fn execute(&self) -> ServerResult<Order> {
-        let order = self.order_repository.create_order(&NewOrder {
-            table_number: self.table_number,
-        })?;
-        Ok(order)
-    }
-}
+//#[async_trait(?Send)]
+//impl<'a> AbstractFeature<Order> for OrderFeature<'a> {
+//    async fn execute(&self) -> ServerResult<Order> {
+//        let order = self.order_repository.create(&NewOrder {
+//            table_number: self.table_number,
+//        })?;
+//        Ok(order)
+//    }
+//}
