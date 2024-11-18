@@ -12,6 +12,20 @@ use diesel::{Connection, PgConnection};
 use serde::Serialize;
 use std::env::var;
 
+#[macro_export]
+/// Macro to connect to database as a mutable reference (otherwise return ServerError)
+macro_rules! db_conn {
+    () => {{
+        let conn = db_connect();
+        if conn.is_err() {
+            return Err(ServerError {
+                error: "Unable to connect to db!".to_string(),
+            });
+        }
+        &mut conn.expect("Unable to connect to db")
+    }};
+}
+
 pub(crate) fn db_connect() -> Result<PgConnection> {
     let database_url = var("DATABASE_URL").expect("Database URL needs to be set!");
 
