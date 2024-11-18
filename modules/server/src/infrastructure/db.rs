@@ -5,7 +5,6 @@ use anyhow::Result;
 use diesel::PgConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-#[allow(unused)]
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 #[allow(unused)]

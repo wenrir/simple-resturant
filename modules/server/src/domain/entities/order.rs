@@ -12,7 +12,6 @@ use utoipa::ToSchema;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(belongs_to(Item))]
 #[diesel(belongs_to(Customer))]
-#[allow(dead_code)] // TODO
 #[diesel(primary_key(customer_id, item_id))]
 pub(crate) struct Order {
     pub(crate) id: i32,

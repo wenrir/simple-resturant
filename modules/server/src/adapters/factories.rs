@@ -15,7 +15,6 @@ use crate::domain::entities::order::{NewOrder, Order};
 
 use super::{db_connect, ServerError, ServerResult};
 
-#[allow(dead_code)]
 #[derive(Clone, Deserialize)]
 pub(crate) struct OrderFactory {}
 
@@ -99,7 +98,6 @@ impl OrderRepository for OrderFactory {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Deserialize)]
 pub(crate) struct ItemFactory {}
 
@@ -140,7 +138,6 @@ impl ItemRepository for ItemFactory {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Deserialize)]
 pub(crate) struct CustomerFactory {}
 

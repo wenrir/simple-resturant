@@ -8,7 +8,6 @@ use utoipa::ToSchema;
 )]
 #[diesel(table_name = customers)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-#[allow(dead_code)] // TODO
 pub(crate) struct Customer {
     #[serde(skip_serializing)]
     pub(crate) id: i32,

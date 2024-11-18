@@ -7,7 +7,6 @@ use super::factories::{CustomerFactory, ItemFactory, OrderFactory};
 
 /// Server state.
 #[derive(Clone, Deserialize)]
-#[allow(dead_code)]
 pub(crate) struct ServerState {
     pub(crate) order_repository: OrderFactory,
     pub(crate) item_repository: ItemFactory,

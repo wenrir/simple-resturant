@@ -295,7 +295,7 @@ mod tests {
         let server = build_test_server();
         {
             let response = server
-                .post(&"/api/v1/items")
+                .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
                     "estimated_minutes": 5
@@ -328,7 +328,7 @@ mod tests {
     async fn test_create_customer() {
         let server = build_test_server();
         {
-            let response = server.post(&"/api/v1/tables/check_in").await;
+            let response = server.post("/api/v1/tables/check_in").await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
@@ -346,12 +346,12 @@ mod tests {
     async fn test_create_order() {
         let server = build_test_server();
         {
-            let response = server.post(&"/api/v1/tables/check_in").await;
+            let response = server.post("/api/v1/tables/check_in").await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
             let response = server
-                .post(&"/api/v1/items")
+                .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
                     "estimated_minutes": 5
@@ -362,7 +362,7 @@ mod tests {
 
         {
             let response = server
-                .post(&"/api/v1/orders")
+                .post("/api/v1/orders")
                 .json(&json!({
                     "table_number": 1,
                     "item_id": 1,
