@@ -29,6 +29,7 @@ command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/server"
 [tasks.client]
 command = "cargo"
 args = ["run", "-p", "client"]
+dependencies=["migrate"]
 
 [tasks.client-bin]
 dependencies=["build-release"]
