@@ -13,6 +13,8 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use super::{
     dto::{
@@ -229,12 +231,42 @@ fn customer_routes() -> Router<ServerState> {
         .route("/", get(get_customer))
         .route("/check_in", post(create_customer))
 }
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        version = "v0.1.0",
+        title = "Simple Resturant API",
+    ),
+    paths(
+
+        // Customer endpoints
+        get_customer,
+        create_customer,
+        // Item endpoints
+        get_item,
+        create_item,
+
+        // Order endpoints
+        create_order,
+        get_orders,
+        delete_order,
+        get_order_by_item,
+    ),
+    components(
+        schemas(
+        CustomerGetRequest, ItemCreateRequest, ItemGetRequest, OrderCreateRequest,
+        CustomerResponse, ItemResponse, OrderResponse,
+        )
+    ),
+)]
+pub(crate) struct Doc {}
 
 /// Creates server application routes.
 pub(crate) fn routes(state: ServerState) -> Router {
     let router = Router::new()
         .nest("/api/v1/orders", order_routes())
         .nest("/api/v1/items", item_routes())
-        .nest("/api/v1/tables", customer_routes()); // Todo add open api json spec here.
+        .nest("/api/v1/tables", customer_routes())
+        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", Doc::openapi()));
     router.fallback(api_fallback).with_state(state)
 }

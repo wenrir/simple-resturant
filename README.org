@@ -127,3 +127,7 @@ Migration is done automatically on start, but in case you'd need to migrate it l
 #+begin_src sh
 make task migrate
 #+end_src
+
+** Access swagger
+
+Swagger can be found on <HOST>:<PORT>/docs
