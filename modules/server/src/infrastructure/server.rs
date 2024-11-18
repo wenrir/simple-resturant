@@ -25,7 +25,7 @@ impl Server {
         let listener = TcpListener::bind(format!("{}:{}", host, port)).await?; // TODO read me from config.
         Ok(Server {
             // TODO do something useful here ;)
-            state: ServerState::new().await?,
+            state: ServerState::new()?,
             socket: listener,
         })
     }

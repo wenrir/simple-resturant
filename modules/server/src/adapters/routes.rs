@@ -13,6 +13,8 @@ use axum::{
     Json, Router,
 };
 
+use log::info;
+
 use super::{
     dto::{request::OrderRequest, response::OrderResponse},
     ServerResult,
@@ -58,7 +60,7 @@ async fn create_order(
 }
 fn order_routes() -> Router<ServerState> {
     Router::new()
-        .route("/:id", post(create_order).get(|| async {}))
+        .route("/:id", post(create_order).get(|| async { info!("order") }))
         .route(
             "/:id/:items",
             get(get_order)
@@ -66,7 +68,7 @@ fn order_routes() -> Router<ServerState> {
                     // Update order
                 })
                 .delete(|| async {
-                    // delete order
+                    // Delete order
                 }),
         )
         .route_layer(middleware::from_fn(is_checked_table_checked_in))
