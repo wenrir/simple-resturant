@@ -84,8 +84,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Cargo test
-        working-directory: ${{ matrix.module }}
-        run: cargo test -p $(basename ${{ matrix.module }} ) --manifest-path Cargo.toml --all-targets --all-features
+        run: make test
 
   cargo-clippy:
     name: Cargo clippy

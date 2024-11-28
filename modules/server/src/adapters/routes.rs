@@ -359,22 +359,11 @@ mod tests {
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
-            let response = server
-                .get("/api/v1/items")
-                .json(&json!({
-                    "id": 1,
-                }))
-                .await;
+            let response = server.get("/api/v1/items/1").await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
-            let response = server
-                .get("/api/v1/items")
-                .json(&json!({
-                    "id": 10,
-                }))
-                .expect_failure()
-                .await;
+            let response = server.get("/api/v1/items/10").expect_failure().await;
             assert_eq!(response.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
         }
     }
