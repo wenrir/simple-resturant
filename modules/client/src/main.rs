@@ -98,8 +98,6 @@ async fn main() {
                     let description = Text::new("Enter item description:")
                         .prompt()
                         .expect("Unable to read description!");
-                    let minutes: i32 =
-                        iprompt!(i32, "Enter estimated minutes:", "Minutes for the item", "0");
 
                     let url = format!("{}/items", base_url);
                     post!(
@@ -107,7 +105,6 @@ async fn main() {
                         &url,
                         json!({
                             "description": description.to_string(),
-                            "estimated_minutes": minutes
                         })
                     );
                 }
