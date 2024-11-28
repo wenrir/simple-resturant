@@ -121,12 +121,6 @@ async fn main() {
                     get!(client, &url);
                 }
                 "Create order" => {
-                    let table: i32 = iprompt!(
-                        i32,
-                        "Enter table id:",
-                        "Table ID to place an order for",
-                        "0"
-                    );
                     let item: i32 = iprompt!(
                         i32,
                         "Enter item id:",
@@ -142,7 +136,6 @@ async fn main() {
                         client,
                         &url,
                         json!({
-                            "table_number": table,
                             "item_id": item,
                             "customer_id": customer,
                             "quantity": quantity
@@ -170,7 +163,22 @@ async fn main() {
                 }
                 "Check in new customer" => {
                     let url = format!("{}/customers/check_in", base_url);
-                    post!(client, &url, json!({}));
+
+                    let table: i32 = iprompt!(
+                        i32,
+                        "Enter table id:",
+                        "Table ID to place an order for",
+                        "0"
+                    );
+
+                    post!(
+                        client,
+                        &url,
+                        json!({
+
+                                "table_number": table,
+                        })
+                    );
                 }
                 "Exit" => {
                     info!("Exiting... Goodbye!");

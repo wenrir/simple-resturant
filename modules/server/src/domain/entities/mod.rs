@@ -8,6 +8,7 @@ diesel::table! {
     customers (id) {
         id -> Int4,
         checked_in_time -> Text,
+        table_number -> Int4,
         total -> Int4,
     }
 }
@@ -23,7 +24,6 @@ diesel::table! {
 diesel::table! {
     orders (id) {
         id -> Int4,
-        table_number -> Int4,
         published_at -> Text,
         quantity -> Int4,
         item_id -> Int4,

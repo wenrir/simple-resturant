@@ -10,11 +10,12 @@ SHELL := /bin/sh
 args?=$(filter-out $@,$(MAKECMDGOALS))
 compose := docker compose --file $(PROJECT_DIR)/docker-compose.yml
 CARGO-exists: ; @which cargo > /dev/null 2>&1
+DIESEL-exists: ; @which diesel > /dev/null 2>&1
 DOCKER-exists: ; @which docker > /dev/null 2>&1
 
 .PHONY: task
 ## Run a specific task inside the cargo makefile, modules/Makefile.toml
-task: CARGO-exists check-args
+task: CARGO-exists DIESEL-exists check-args
 	@if [ -z "$(args)" ]; then \
 		echo "Please provide arguments to this rule." >&2; \
 		exit 1; \
@@ -33,7 +34,7 @@ run: DOCKER-exists
 
 .PHONY: test
 ## Run test with test db.
-test: DOCKER-exists
+test: DOCKER-exists DIESEL-exists
 	$(compose) down --volumes
 	$(compose) up db -d
 	@until docker compose logs db | grep -q "PostgreSQL init process complete"; do \
