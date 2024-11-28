@@ -400,7 +400,7 @@ mod tests {
                 .post("/api/v1/customers/check_in")
                 .json(&json!({
 
-                        "table_number": 1,
+                        "table_number": 10,
                 }))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
@@ -421,7 +421,7 @@ mod tests {
                 .post("/api/v1/orders")
                 .json(&json!({
                     "item_id": 1,
-                    "customer_id": 1,
+                    "customer_id": 2,
                     "quantity": 10,
 
                 }))
