@@ -88,6 +88,7 @@ async fn main() {
 
         match ans {
             Ok(choice) => match choice {
+<<<<<<< HEAD
                 "Item operations" => {
                     let item_options: Vec<&str> =
                         vec!["Add item(s)", "List items", "Get item by id", "Back"];
@@ -134,6 +135,21 @@ async fn main() {
                         },
                         Err(_) => error!("There was an error, please try again"),
                     }
+=======
+                "Add item(s)" => {
+                    let description = Text::new("Enter item description:")
+                        .prompt()
+                        .expect("Unable to read description!");
+
+                    let url = format!("{}/items", base_url);
+                    post!(
+                        client,
+                        &url,
+                        json!({
+                            "description": description.to_string(),
+                        })
+                    );
+>>>>>>> main
                 }
                 "Table operations" => {
                     let table_options: Vec<&str> = vec![

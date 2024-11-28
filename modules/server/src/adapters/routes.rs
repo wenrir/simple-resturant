@@ -13,6 +13,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use rand::Rng;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -196,9 +197,10 @@ async fn create_item(
     State(state): State<ServerState>,
     Json(req): Json<ItemCreateRequest>,
 ) -> ServerResult<Json<ItemResponse>> {
+    let mut rng = rand::thread_rng();
     let item = NewItem {
         description: &req.description,
-        estimated_minutes: &req.estimated_minutes,
+        estimated_minutes: &rng.gen_range(5..=15),
     };
     match state.item_repository.create(&item) {
         Ok(res) => Ok(Json(ItemResponse { data: res })),
@@ -366,7 +368,6 @@ mod tests {
                 .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
-                    "estimated_minutes": 5
                 }))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
@@ -420,7 +421,6 @@ mod tests {
                 .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
-                    "estimated_minutes": 5
                 }))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
