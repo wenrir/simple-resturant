@@ -178,16 +178,12 @@ impl CustomerRepository for CustomerFactory {
             .select(Customer::as_select())
             .filter(total.eq(0).and(table_number.eq(n.table_number)))
             .load(conn);
-
-        match customer {
-            Ok(c) => {
-                if !c.is_empty() {
-                    return Err(ServerError {
-                        error: "Unable to checkin, table already occupied!".to_string(),
-                    });
-                }
+        if let Ok(c) = customer {
+            if !c.is_empty() {
+                return Err(ServerError {
+                    error: "Unable to checkin, table already occupied!".to_string(),
+                });
             }
-            _ => {}
         }
 
         let res = diesel::insert_into(customers::table)
