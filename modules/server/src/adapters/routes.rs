@@ -429,12 +429,12 @@ mod tests {
         {
             let response = server
                 .post("/api/v1/orders")
-                .json(&json!({
+                .json(&json!([{
                     "item_id": 1,
                     "customer_id": 2,
                     "quantity": 10,
 
-                }))
+                }]))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
