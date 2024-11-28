@@ -43,17 +43,45 @@ impl OrderRepository for OrderFactory {
 
     fn find_customer(&self, cid: &i32) -> ServerResult<Vec<Order>> {
         let conn = db_conn!();
-        let all_customers = get_customer(conn, cid);
-        if all_customers.is_err() {
+        let customer = get_customer(conn, cid);
+        if customer.is_err() {
             return Err(ServerError {
                 error: "Unable to find customers!".to_string(),
             });
         }
-        let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
+        let order = Order::belonging_to(&customer.expect("Unable to find customer!"))
             .select(Order::as_select())
             .load(conn);
         match order {
             Ok(order) => Ok(order),
+            _ => Err(ServerError {
+                error: "Unable to find order!".to_string(),
+            }),
+        }
+    }
+
+    fn delete_customer_order(&self, cid: &i32, oid: &i32) -> ServerResult<String> {
+        use crate::domain::entities::orders::dsl::*;
+        let conn = db_conn!();
+        let customer = get_customer(conn, cid);
+        if customer.is_err() {
+            return Err(ServerError {
+                error: "Unable to find customers!".to_string(),
+            });
+        }
+        let order = diesel::delete(
+            Order::belonging_to(&customer.expect("Unable to find customer!")).filter(id.eq(oid)),
+        )
+        .execute(conn);
+        match order {
+            Ok(r) => {
+                if r == 0 {
+                    return Err(ServerError {
+                        error: "Unable to find order id!".to_string(),
+                    });
+                }
+                Ok("OK".to_string())
+            }
             _ => Err(ServerError {
                 error: "Unable to find order!".to_string(),
             }),

@@ -133,6 +133,7 @@ async fn main() {
                         "Get all customers",
                         "Get customer information (including orders)",
                         "Check in new customer",
+                        "Delete customer order",
                         "Back",
                     ];
                     let a: Result<&str, InquireError> = Select::new(
@@ -176,6 +177,21 @@ async fn main() {
                                 );
 
                                 post!(client, &url, json!({"table_number": table,}));
+                            }
+                            "Delete customer order" => {
+                                let customer_id: i32 = iprompt!(
+                                    i32,
+                                    "Enter customer id:",
+                                    "Customer ID to delete order for",
+                                    "1"
+                                );
+                                let order_id: i32 =
+                                    iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
+                                let url = format!(
+                                    "{}/customers/{}/orders/{}",
+                                    base_url, customer_id, order_id
+                                );
+                                delete!(client, &url);
                             }
                             _ => {}
                         },

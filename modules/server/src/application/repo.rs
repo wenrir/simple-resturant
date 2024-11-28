@@ -12,6 +12,7 @@ use async_trait::async_trait;
 pub(crate) trait OrderRepository {
     fn find(&self, id: &i32) -> ServerResult<Vec<Order>>;
     fn find_customer(&self, id: &i32) -> ServerResult<Vec<Order>>;
+    fn delete_customer_order(&self, cid: &i32, oid: &i32) -> ServerResult<String>;
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
     fn delete(&self, item_id: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Order>>;
