@@ -10,7 +10,7 @@ use axum::{
     http::StatusCode,
     middleware::{self, Next},
     response::Response,
-    routing::{get, post},
+    routing::{delete, get, post},
     Json, Router,
 };
 use rand::Rng;
@@ -137,6 +137,7 @@ async fn delete_order(
         Err(err) => Err(err),
     }
 }
+
 fn order_routes() -> Router<ServerState> {
     Router::new()
         .route("/", post(create_order).get(get_orders))
@@ -252,6 +253,25 @@ async fn get_customer_orders(
     }
 }
 
+/// Delete customer order.
+#[utoipa::path(
+        delete,
+        path = "/api/v1/customers/:id/orders/:id",
+        responses(
+            (status = 200, description = "Successfully deleted item", body = [String]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn delete_customer_order(
+    State(state): State<ServerState>,
+    Path(ids): Path<(i32, i32)>,
+) -> ServerResult<String> {
+    match state.order_repository.delete_customer_order(&ids.0, &ids.1) {
+        Ok(res) => Ok(res),
+        Err(err) => Err(err),
+    }
+}
+
 /// Get customers.
 #[utoipa::path(
         get,
@@ -299,6 +319,7 @@ fn customer_routes() -> Router<ServerState> {
         .route("/", get(get_customers))
         .route("/:id", get(get_customer))
         .route("/:id/orders", get(get_customer_orders))
+        .route("/:id/orders/:id", delete(delete_customer_order))
         .route("/check_in", post(create_customer))
 }
 #[derive(OpenApi)]
