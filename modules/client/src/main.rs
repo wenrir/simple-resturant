@@ -194,31 +194,49 @@ async fn main() {
                         Ok(c) => match c {
                             "Back" => {}
                             "Create order" => {
-                                let item: i32 = iprompt!(
-                                    i32,
-                                    "Enter item id:",
-                                    "Item ID to include in the order",
-                                    "1"
-                                );
                                 let customer: i32 = iprompt!(
                                     i32,
                                     "Enter customer id:",
                                     "Customer ID for the order",
                                     "1"
                                 );
-                                let quantity: i32 =
-                                    iprompt!(i32, "Enter quantity:", "Quantity of items", "1");
-
+                                let mut items = vec![];
                                 let url = format!("{}/orders", base_url);
-                                post!(
-                                    client,
-                                    &url,
-                                    json!({
-                                        "item_id": item,
+                                // The nesting is getting out of control ...
+                                loop {
+                                    let item: i32 = iprompt!(
+                                        i32,
+                                        "Enter item id:",
+                                        "Item ID to include in the order",
+                                        "1"
+                                    );
+                                    let quantity: i32 =
+                                        iprompt!(i32, "Enter quantity:", "Quantity of items", "1");
+                                    // TODO: Change structure of the order creation to accept a list of items instead.
+                                    // E.g.
+                                    // {
+                                    //  "customer_id": 1,
+                                    //  "items": [
+                                    //    { "item_id": 101, "quantity": 2 },
+                                    //    { "item_id": 102, "quantity": 5 }
+                                    //  ]
+                                    //}
+
+                                    items.push(json!({
                                         "customer_id": customer,
+                                        "item_id": item,
                                         "quantity": quantity
-                                    })
-                                );
+                                    }));
+
+                                    let add_more = Text::new("Add another item? (yes/no)")
+                                        .with_default("no")
+                                        .prompt()
+                                        .expect("Failed to read input");
+                                    if add_more.to_lowercase() != "yes" {
+                                        break;
+                                    }
+                                }
+                                post!(client, &url, json!(items));
                             }
                             "Get all orders" => {
                                 let url = format!("{}/orders", base_url);
