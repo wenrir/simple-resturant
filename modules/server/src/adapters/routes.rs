@@ -429,12 +429,32 @@ mod tests {
         {
             let response = server
                 .post("/api/v1/orders")
-                .json(&json!([{
-                    "item_id": 1,
+                .json(&json!([
+                    {"item_id": 1,
                     "customer_id": 2,
-                    "quantity": 10,
-
-                }]))
+                    "quantity": 10,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 1,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 5,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 6,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 100,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 50,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 70,},
+                    {"item_id": 1,
+                    "customer_id": 2,
+                    "quantity": 1,},
+                ]))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
