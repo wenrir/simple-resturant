@@ -84,7 +84,9 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Cargo test
-        run: make test
+        run: |
+          cargo install cargo-make
+          make test
 
   cargo-clippy:
     name: Cargo clippy
