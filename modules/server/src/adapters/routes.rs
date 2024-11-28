@@ -377,7 +377,7 @@ mod tests {
         {
             let response = server
                 .post("/api/v1/customers/check_in")
-                .json(&json!("table_number": 1))
+                .json(&json!({"table_number": 1}))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
