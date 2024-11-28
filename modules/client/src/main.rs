@@ -35,7 +35,7 @@ macro_rules! get {
     ($client:expr, $url:expr) => {{
         let response = $client.get($url).send().await;
         match response {
-            Ok(res) => println!("Response: {:?}", res.text().await),
+            Ok(res) => println!("{:?}", res.text().await),
             Err(err) => eprintln!("Error during GET: {:?}", err),
         }
     }};
@@ -46,7 +46,7 @@ macro_rules! post {
     ($client:expr, $url:expr, $json_body:expr) => {{
         let response = $client.post($url).json(&$json_body).send().await;
         match response {
-            Ok(res) => println!("Response: {:?}", res.text().await),
+            Ok(res) => println!("{:?}", res.text().await),
             Err(err) => eprintln!("Error during POST: {:?}", err),
         }
     }};
@@ -57,7 +57,7 @@ macro_rules! delete {
     ($client:expr, $url:expr) => {{
         let response = $client.delete($url).send().await;
         match response {
-            Ok(res) => println!("Response: {:?}", res.text().await),
+            Ok(res) => println!("{:?}", res.text().await),
             Err(err) => eprintln!("Error during DELETE: {:?}", err),
         }
     }};
@@ -74,111 +74,173 @@ async fn main() {
 
     loop {
         let options: Vec<&str> = vec![
-            "Add item(s)",
-            "List items",
-            "Get item by id",
-            "Create order",
-            "Get all orders",
-            "Delete order",
-            "Get all customers",
-            "Get customer",
-            "Check in new customer",
+            "Item operations",
+            "Table operations",
+            "Order operations",
             "Exit",
         ];
 
         let ans: Result<&str, InquireError> = Select::new(
-            "What would you like to do? (please select an option)",
+            "What would you like to do? (please select an option, sub menu will be available)",
             options,
         )
         .prompt();
 
         match ans {
             Ok(choice) => match choice {
-                "Add item(s)" => {
-                    let description = Text::new("Enter item description:")
-                        .prompt()
-                        .expect("Unable to read description!");
-                    let minutes: i32 =
-                        iprompt!(i32, "Enter estimated minutes:", "Minutes for the item", "0");
+                "Item operations" => {
+                    let item_options: Vec<&str> =
+                        vec!["Add item(s)", "List items", "Get item by id", "Back"];
+                    let a: Result<&str, InquireError> = Select::new(
+                        "[item] What would you like to do? (please select an option)",
+                        item_options,
+                    )
+                    .prompt();
+                    match a {
+                        Ok(c) => match c {
+                            "Back" => {}
+                            "Add item(s)" => {
+                                let description = Text::new("Enter item description:")
+                                    .prompt()
+                                    .expect("Unable to read description!");
+                                let minutes: i32 = iprompt!(
+                                    i32,
+                                    "Enter estimated minutes:",
+                                    "Minutes for the item",
+                                    "0"
+                                );
 
-                    let url = format!("{}/items", base_url);
-                    post!(
-                        client,
-                        &url,
-                        json!({
-                            "description": description.to_string(),
-                            "estimated_minutes": minutes
-                        })
-                    );
+                                let url = format!("{}/items", base_url);
+                                post!(
+                                    client,
+                                    &url,
+                                    json!({
+                                        "description": description.to_string(),
+                                        "estimated_minutes": minutes
+                                    })
+                                );
+                            }
+                            "List items" => {
+                                let url = format!("{}/items", base_url);
+                                get!(client, &url);
+                            }
+                            "Get item by id" => {
+                                let id: i32 =
+                                    iprompt!(i32, "Enter item id:", "Item ID to fetch", "0");
+                                let url = format!("{}/items/{}", base_url, id);
+                                get!(client, &url);
+                            }
+                            _ => {}
+                        },
+                        Err(_) => error!("There was an error, please try again"),
+                    }
                 }
-                "List items" => {
-                    let url = format!("{}/items", base_url);
-                    get!(client, &url);
-                }
-                "Get item by id" => {
-                    let id: i32 = iprompt!(i32, "Enter item id:", "Item ID to fetch", "0");
-                    let url = format!("{}/items/{}", base_url, id);
-                    get!(client, &url);
-                }
-                "Create order" => {
-                    let item: i32 = iprompt!(
-                        i32,
-                        "Enter item id:",
-                        "Item ID to include in the order",
-                        "1"
-                    );
-                    let customer: i32 =
-                        iprompt!(i32, "Enter customer id:", "Customer ID for the order", "1");
-                    let quantity: i32 = iprompt!(i32, "Enter quantity:", "Quantity of items", "1");
+                "Table operations" => {
+                    let table_options: Vec<&str> = vec![
+                        "Get all customers",
+                        "Get customer information (including orders)",
+                        "Check in new customer",
+                        "Back",
+                    ];
+                    let a: Result<&str, InquireError> = Select::new(
+                        "[table] What would you like to do? (please select an option)",
+                        table_options,
+                    )
+                    .prompt();
+                    match a {
+                        Ok(c) => match c {
+                            "Back" => {}
+                            "Get all customers" => {
+                                let url = format!("{}/customers", base_url);
+                                get!(client, &url);
+                            }
+                            "Get customer information (including orders)" => {
+                                let customer_id: i32 = iprompt!(
+                                    i32,
+                                    "Enter customer id:",
+                                    "Customer ID to fetch",
+                                    "1"
+                                );
+                                {
+                                    let url = format!("{}/customers/{}", base_url, customer_id);
+                                    get!(client, &url);
+                                }
+                                println!("Reading orders for customer {:?}", customer_id);
+                                {
+                                    let url =
+                                        format!("{}/customers/{}/orders", base_url, customer_id);
+                                    get!(client, &url);
+                                }
+                            }
+                            "Check in new customer" => {
+                                let url = format!("{}/customers/check_in", base_url);
 
-                    let url = format!("{}/orders", base_url);
-                    post!(
-                        client,
-                        &url,
-                        json!({
-                            "item_id": item,
-                            "customer_id": customer,
-                            "quantity": quantity
-                        })
-                    );
-                }
-                "Get all orders" => {
-                    let url = format!("{}/orders", base_url);
-                    get!(client, &url);
-                }
-                "Delete order" => {
-                    let order_id: i32 = iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
-                    let url = format!("{}/orders/{}", base_url, order_id);
-                    delete!(client, &url);
-                }
-                "Get all customers" => {
-                    let url = format!("{}/customers", base_url);
-                    get!(client, &url);
-                }
-                "Get customer" => {
-                    let customer_id: i32 =
-                        iprompt!(i32, "Enter customer id:", "Customer ID to fetch", "1");
-                    let url = format!("{}/customers/{}", base_url, customer_id);
-                    get!(client, &url);
-                }
-                "Check in new customer" => {
-                    let url = format!("{}/customers/check_in", base_url);
+                                let table: i32 = iprompt!(
+                                    i32,
+                                    "Enter table id:",
+                                    "Table ID to place an order for",
+                                    "0"
+                                );
 
-                    let table: i32 = iprompt!(
-                        i32,
-                        "Enter table id:",
-                        "Table ID to place an order for",
-                        "0"
-                    );
+                                post!(client, &url, json!({"table_number": table,}));
+                            }
+                            _ => {}
+                        },
+                        Err(_) => error!("There was an error, please try again"),
+                    }
+                }
+                "Order operations" => {
+                    let order_options: Vec<&str> =
+                        vec!["Create order", "Get all orders", "Delete order", "Back"];
+                    let a: Result<&str, InquireError> = Select::new(
+                        "[order] What would you like to do? (please select an option)",
+                        order_options,
+                    )
+                    .prompt();
+                    match a {
+                        Ok(c) => match c {
+                            "Back" => {}
+                            "Create order" => {
+                                let item: i32 = iprompt!(
+                                    i32,
+                                    "Enter item id:",
+                                    "Item ID to include in the order",
+                                    "1"
+                                );
+                                let customer: i32 = iprompt!(
+                                    i32,
+                                    "Enter customer id:",
+                                    "Customer ID for the order",
+                                    "1"
+                                );
+                                let quantity: i32 =
+                                    iprompt!(i32, "Enter quantity:", "Quantity of items", "1");
 
-                    post!(
-                        client,
-                        &url,
-                        json!({
-
-                                "table_number": table,
-                        })
-                    );
+                                let url = format!("{}/orders", base_url);
+                                post!(
+                                    client,
+                                    &url,
+                                    json!({
+                                        "item_id": item,
+                                        "customer_id": customer,
+                                        "quantity": quantity
+                                    })
+                                );
+                            }
+                            "Get all orders" => {
+                                let url = format!("{}/orders", base_url);
+                                get!(client, &url);
+                            }
+                            "Delete order" => {
+                                let order_id: i32 =
+                                    iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
+                                let url = format!("{}/orders/{}", base_url, order_id);
+                                delete!(client, &url);
+                            }
+                            _ => {}
+                        },
+                        Err(_) => error!("There was an error, please try again"),
+                    }
                 }
                 "Exit" => {
                     info!("Exiting... Goodbye!");

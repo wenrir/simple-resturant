@@ -83,7 +83,7 @@ async fn get_orders(State(state): State<ServerState>) -> ServerResult<Json<Order
 /// Create an order.
 #[utoipa::path(
         post,
-        request_body = OrderCreateRequest,
+        request_body = Vec<OrderCreateRequest>,
         path = "/api/v1/orders",
         responses(
             (status = 200, description = "Success created order", body = [String]),
@@ -92,19 +92,29 @@ async fn get_orders(State(state): State<ServerState>) -> ServerResult<Json<Order
     )]
 async fn create_order(
     State(state): State<ServerState>,
-    Json(req): Json<OrderCreateRequest>,
+    Json(reqs): Json<Vec<OrderCreateRequest>>,
 ) -> ServerResult<String> {
     use chrono::prelude::*;
-    let order = NewOrder {
-        item_id: &req.item_id,
-        customer_id: &req.customer_id,
-        published_at: &Local::now().to_rfc3339(),
-        quantity: &req.quantity,
-    };
-    match state.order_repository.create(&order) {
-        Ok(_) => Ok("OK".to_string()),
-        Err(err) => Err(err),
+    let mut responses = Vec::new();
+    for req in reqs.iter() {
+        let order = NewOrder {
+            item_id: &req.item_id,
+            customer_id: &req.customer_id,
+            published_at: &Local::now().to_rfc3339(),
+            quantity: &req.quantity,
+        };
+        match state.order_repository.create(&order) {
+            Ok(_) => responses.push(format!(
+                "Order for item_id {} added successfully.",
+                req.item_id
+            )),
+            Err(err) => responses.push(format!(
+                "Failed to add order for item_id {}: {:?}",
+                req.item_id, err
+            )),
+        }
     }
+    Ok(responses.join("\n"))
 }
 
 /// Delete an order.
