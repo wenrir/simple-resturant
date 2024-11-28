@@ -84,8 +84,10 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Cargo test
-        working-directory: ${{ matrix.module }}
-        run: cargo test -p $(basename ${{ matrix.module }} ) --manifest-path Cargo.toml --all-targets --all-features
+        run: |
+          cargo install cargo-make
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/diesel-rs/diesel/releases/latest/download/diesel_cli-installer.sh | sh
+          make test
 
   cargo-clippy:
     name: Cargo clippy

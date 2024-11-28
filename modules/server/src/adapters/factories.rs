@@ -41,6 +41,19 @@ impl OrderRepository for OrderFactory {
         }
     }
 
+    fn all(&self) -> ServerResult<Vec<Order>> {
+        use crate::domain::entities::orders::dsl::*;
+        let conn = db_conn!();
+        let order = orders.select(Order::as_select()).load(conn).optional();
+        match order {
+            Ok(Some(order)) => Ok(order),
+            Ok(None) => Ok(vec![]),
+            _ => Err(ServerError {
+                error: "Unable to find orders!".to_string(),
+            }),
+        }
+    }
+
     fn find_specific_item(&self, number: i32, item: i32) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
@@ -84,7 +97,7 @@ impl OrderRepository for OrderFactory {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
 
-        let res = diesel::delete(orders.filter(item_id.eq(i))).execute(conn);
+        let res = diesel::delete(orders.filter(id.eq(i))).execute(conn);
 
         match res {
             Ok(_) => Ok(()),
@@ -122,6 +135,20 @@ impl ItemRepository for ItemFactory {
             }
         }
     }
+
+    fn all(&self) -> ServerResult<Vec<Item>> {
+        use crate::domain::entities::items::dsl::*;
+        let conn = db_conn!();
+        let item = items.select(Item::as_select()).load(conn).optional();
+        match item {
+            Ok(Some(item)) => Ok(item),
+            Ok(None) => Ok(vec![]),
+            _ => Err(ServerError {
+                error: "Unable to find item!".to_string(),
+            }),
+        }
+    }
+
     fn get(&self, _id: &i32) -> ServerResult<Item> {
         use crate::domain::entities::items::dsl::*;
         let conn = db_conn!();
@@ -160,6 +187,22 @@ impl CustomerRepository for CustomerFactory {
                     error: "Unable to create item!".to_string(),
                 })
             }
+        }
+    }
+
+    fn all(&self) -> ServerResult<Vec<Customer>> {
+        use crate::domain::entities::customers::dsl::*;
+        let conn = db_conn!();
+        let customer = customers
+            .select(Customer::as_select())
+            .load(conn)
+            .optional();
+        match customer {
+            Ok(Some(c)) => Ok(c),
+            Ok(None) => Ok(vec![]),
+            _ => Err(ServerError {
+                error: "Unable to find customer!".to_string(),
+            }),
         }
     }
     fn get(&self, _id: &i32) -> ServerResult<Customer> {
