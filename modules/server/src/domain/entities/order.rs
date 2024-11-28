@@ -16,6 +16,15 @@ use utoipa::ToSchema;
 pub(crate) struct Order {
     pub(crate) id: i32,
     pub(crate) published_at: String,
+    // This should probably be a list instead.
+    // then I could add orders as:
+    // {
+    //  "customer_id": 1,
+    //  "items": [
+    //    { "item_id": 101, "quantity": 2 },
+    //    { "item_id": 102, "quantity": 5 }
+    //  ]
+    //}
     pub(crate) quantity: i32,
     pub(crate) item_id: i32,
     #[serde(skip_serializing)]
