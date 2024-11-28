@@ -11,7 +11,6 @@ use utoipa::ToSchema;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct Item {
     #[allow(unused)]
-    #[serde(skip_serializing)]
     pub(crate) id: i32,
     pub(crate) estimated_minutes: i32,
     pub(crate) description: String,

@@ -14,21 +14,21 @@ pub(crate) trait OrderRepository {
     fn find_specific_item(&self, number: i32, item: i32) -> ServerResult<Vec<Order>>;
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
     fn delete(&self, item_id: &i32) -> ServerResult<()>;
-    // Other traits goes here.
+    fn all(&self) -> ServerResult<Vec<Order>>;
 }
 
 #[async_trait(?Send)]
 pub(crate) trait ItemRepository {
     fn create(&self, item: &NewItem) -> ServerResult<Item>;
     fn get(&self, id: &i32) -> ServerResult<Item>;
-    // Other traits goes here.
+    fn all(&self) -> ServerResult<Vec<Item>>;
 }
 
 #[async_trait(?Send)]
 pub(crate) trait CustomerRepository {
     fn create(&self, item: &NewCustomer) -> ServerResult<Customer>;
     fn get(&self, id: &i32) -> ServerResult<Customer>;
-    // Other traits goes here.
+    fn all(&self) -> ServerResult<Vec<Customer>>;
 }
 
 // This could ofcourse be moved to another files, as it's more an interface than a repo.

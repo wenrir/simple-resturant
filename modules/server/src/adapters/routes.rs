@@ -18,8 +18,10 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use super::{
     dto::{
-        request::{CustomerGetRequest, ItemCreateRequest, ItemGetRequest, OrderCreateRequest},
-        response::{CustomerResponse, ItemResponse, OrderResponse},
+        request::{CustomerGetRequest, ItemCreateRequest, OrderCreateRequest},
+        response::{
+            CustomerResponse, CustomersResponse, ItemResponse, ItemsResponse, OrderResponse,
+        },
     },
     ServerResult,
 };
@@ -48,12 +50,30 @@ async fn is_checked_table_checked_in(req: Request, next: Next) -> ServerResult<R
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_orders(
+async fn get_order_by_id(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
 ) -> ServerResult<Json<OrderResponse>> {
     match state.order_repository.find_by_table_number(id) {
-        Ok(res) => Ok(Json(OrderResponse { order: res })),
+        Ok(res) => Ok(Json(OrderResponse { data: res })),
+        Err(err) => Err(err),
+    }
+}
+
+/// Find all orders
+#[fastrace::trace]
+#[utoipa::path(
+        get,
+        request_body = i32,
+        path = "/api/v1/orders/:id",
+        responses(
+            (status = 200, description = "Success found order", body = [OrderResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn get_orders(State(state): State<ServerState>) -> ServerResult<Json<OrderResponse>> {
+    match state.order_repository.all() {
+        Ok(res) => Ok(Json(OrderResponse { data: res })),
         Err(err) => Err(err),
     }
 }
@@ -74,7 +94,7 @@ async fn get_order_by_item(
     Path((table_id, item_id)): Path<(i32, i32)>,
 ) -> ServerResult<Json<OrderResponse>> {
     match state.order_repository.find_specific_item(table_id, item_id) {
-        Ok(res) => Ok(Json(OrderResponse { order: res })),
+        Ok(res) => Ok(Json(OrderResponse { data: res })),
         Err(err) => Err(err),
     }
 }
@@ -128,19 +148,35 @@ async fn delete_order(
 }
 fn order_routes() -> Router<ServerState> {
     Router::new()
-        .route("/", post(create_order))
-        .route("/:id", get(get_orders).delete(delete_order))
+        .route("/", post(create_order).get(get_orders))
+        .route("/:id", get(get_order_by_id).delete(delete_order))
         .route("/:id/:item", get(get_order_by_item))
         .route_layer(middleware::from_fn(is_checked_table_checked_in))
 }
 
 // TODO These can be converted to macros
-/// Get item.
+/// Get items.
 #[fastrace::trace]
 #[utoipa::path(
         get,
-        request_body = ItemGetRequest,
         path = "/api/v1/items",
+        responses(
+            (status = 200, description = "Successfully found items", body = [ItemsResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn get_items(State(state): State<ServerState>) -> ServerResult<Json<ItemsResponse>> {
+    match state.item_repository.all() {
+        Ok(res) => Ok(Json(ItemsResponse { data: res })),
+        Err(err) => Err(err),
+    }
+}
+
+/// Get specific item.
+#[fastrace::trace]
+#[utoipa::path(
+        get,
+        path = "/api/v1/items/:id",
         responses(
             (status = 200, description = "Successfully found item", body = [ItemResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -148,10 +184,10 @@ fn order_routes() -> Router<ServerState> {
     )]
 async fn get_item(
     State(state): State<ServerState>,
-    Json(req): Json<ItemGetRequest>,
+    Path(id): Path<i32>,
 ) -> ServerResult<Json<ItemResponse>> {
-    match state.item_repository.get(&req.id) {
-        Ok(res) => Ok(Json(ItemResponse { item: res })),
+    match state.item_repository.get(&id) {
+        Ok(res) => Ok(Json(ItemResponse { data: res })),
         Err(err) => Err(err),
     }
 }
@@ -176,20 +212,21 @@ async fn create_item(
         estimated_minutes: &req.estimated_minutes,
     };
     match state.item_repository.create(&item) {
-        Ok(res) => Ok(Json(ItemResponse { item: res })),
+        Ok(res) => Ok(Json(ItemResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
 fn item_routes() -> Router<ServerState> {
-    Router::new().route("/", post(create_item).get(get_item))
+    Router::new()
+        .route("/", post(create_item).get(get_items))
+        .route("/:id", get(get_item))
 }
 
 /// Get customer.
 #[utoipa::path(
         get,
-        request_body = CustomerGetRequest,
-        path = "/api/v1/customer",
+        path = "/api/v1/customers/:id",
         responses(
             (status = 200, description = "Successfully found item", body = [CustomerResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -197,10 +234,26 @@ fn item_routes() -> Router<ServerState> {
     )]
 async fn get_customer(
     State(state): State<ServerState>,
-    Json(req): Json<CustomerGetRequest>,
+    Path(id): Path<i32>,
 ) -> ServerResult<Json<CustomerResponse>> {
-    match state.customer_repository.get(&req.id) {
-        Ok(res) => Ok(Json(CustomerResponse { customer: res })),
+    match state.customer_repository.get(&id) {
+        Ok(res) => Ok(Json(CustomerResponse { data: res })),
+        Err(err) => Err(err),
+    }
+}
+
+/// Get customers.
+#[utoipa::path(
+        get,
+        path = "/api/v1/customers",
+        responses(
+            (status = 200, description = "Successfully found item", body = [CustomersResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn get_customers(State(state): State<ServerState>) -> ServerResult<Json<CustomersResponse>> {
+    match state.customer_repository.all() {
+        Ok(res) => Ok(Json(CustomersResponse { data: res })),
         Err(err) => Err(err),
     }
 }
@@ -208,7 +261,7 @@ async fn get_customer(
 /// Create customer.
 #[utoipa::path(
         post,
-        path = "/api/v1/customer/check_in",
+        path = "/api/v1/customers/check_in",
         responses(
             (status = 200, description = "Checks in a customer", body = [CustomerResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
@@ -221,14 +274,15 @@ async fn create_customer(State(state): State<ServerState>) -> ServerResult<Json<
         total: &0_i32,
     };
     match state.customer_repository.create(customer) {
-        Ok(res) => Ok(Json(CustomerResponse { customer: res })),
+        Ok(res) => Ok(Json(CustomerResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
 fn customer_routes() -> Router<ServerState> {
     Router::new()
-        .route("/", get(get_customer))
+        .route("/", get(get_customers))
+        .route("/:id", get(get_customer))
         .route("/check_in", post(create_customer))
 }
 #[derive(OpenApi)]
@@ -244,17 +298,18 @@ fn customer_routes() -> Router<ServerState> {
         create_customer,
         // Item endpoints
         get_item,
+        get_items,
         create_item,
 
         // Order endpoints
         create_order,
-        get_orders,
+        get_order_by_id,
         delete_order,
         get_order_by_item,
     ),
     components(
         schemas(
-        CustomerGetRequest, ItemCreateRequest, ItemGetRequest, OrderCreateRequest,
+        CustomerGetRequest, ItemCreateRequest, OrderCreateRequest,
         CustomerResponse, ItemResponse, OrderResponse,
         )
     ),
@@ -266,7 +321,7 @@ pub(crate) fn routes(state: ServerState) -> Router {
     let router = Router::new()
         .nest("/api/v1/orders", order_routes())
         .nest("/api/v1/items", item_routes())
-        .nest("/api/v1/tables", customer_routes())
+        .nest("/api/v1/customers", customer_routes())
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", Doc::openapi()));
     router.fallback(api_fallback).with_state(state)
 }
@@ -328,12 +383,12 @@ mod tests {
     async fn test_create_customer() {
         let server = build_test_server();
         {
-            let response = server.post("/api/v1/tables/check_in").await;
+            let response = server.post("/api/v1/customers/check_in").await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
             let response = server
-                .get("/api/v1/tables")
+                .get("/api/v1/customers")
                 .json(&json!({
                     "id": 1,
                 }))
@@ -346,7 +401,7 @@ mod tests {
     async fn test_create_order() {
         let server = build_test_server();
         {
-            let response = server.post("/api/v1/tables/check_in").await;
+            let response = server.post("/api/v1/customers/check_in").await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
