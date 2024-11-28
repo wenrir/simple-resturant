@@ -6,7 +6,7 @@ use serde::Deserialize;
 use async_trait::async_trait;
 use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
 
-use crate::application::features::get_all_active_customers;
+use crate::application::features::{get_all_active_customers, get_customer};
 use crate::application::repo::{CustomerRepository, ItemRepository, OrderRepository};
 use crate::db_conn;
 use crate::domain::entities::customer::{Customer, NewCustomer};
@@ -20,7 +20,7 @@ pub(crate) struct OrderFactory {}
 
 #[async_trait(?Send)]
 impl OrderRepository for OrderFactory {
-    fn find_by_table_number(&self, number: i32) -> ServerResult<Vec<Order>> {
+    fn find(&self, _id: &i32) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
         let all_customers = get_all_active_customers(conn);
@@ -30,13 +30,32 @@ impl OrderRepository for OrderFactory {
             });
         }
         let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
-            .filter(table_number.eq(number))
+            .filter(id.eq(_id))
             .select(Order::as_select())
             .load(conn);
         match order {
             Ok(order) => Ok(order),
             _ => Err(ServerError {
-                error: "Unable to find item!".to_string(),
+                error: "Unable to find order!".to_string(),
+            }),
+        }
+    }
+
+    fn find_customer(&self, cid: &i32) -> ServerResult<Vec<Order>> {
+        let conn = db_conn!();
+        let all_customers = get_customer(conn, cid);
+        if all_customers.is_err() {
+            return Err(ServerError {
+                error: "Unable to find customers!".to_string(),
+            });
+        }
+        let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
+            .select(Order::as_select())
+            .load(conn);
+        match order {
+            Ok(order) => Ok(order),
+            _ => Err(ServerError {
+                error: "Unable to find order!".to_string(),
             }),
         }
     }
@@ -54,26 +73,6 @@ impl OrderRepository for OrderFactory {
         }
     }
 
-    fn find_specific_item(&self, number: i32, item: i32) -> ServerResult<Vec<Order>> {
-        use crate::domain::entities::orders::dsl::*;
-        let conn = db_conn!();
-        let all_customers = get_all_active_customers(conn);
-        if all_customers.is_err() {
-            return Err(ServerError {
-                error: "Unable to find customers!".to_string(),
-            });
-        }
-        let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
-            .filter(table_number.eq(number).and(item_id.eq(item)))
-            .select(Order::as_select())
-            .load(conn);
-        match order {
-            Ok(order) => Ok(order),
-            _ => Err(ServerError {
-                error: "Unable to find item!".to_string(),
-            }),
-        }
-    }
     fn create(&self, o: &NewOrder) -> ServerResult<Order> {
         use crate::domain::entities::orders;
         let conn = db_conn!();
@@ -172,7 +171,24 @@ pub(crate) struct CustomerFactory {}
 impl CustomerRepository for CustomerFactory {
     fn create(&self, n: &NewCustomer) -> ServerResult<Customer> {
         use crate::domain::entities::customers;
+        use crate::domain::entities::customers::dsl::*;
         let conn = db_conn!();
+
+        let customer = customers
+            .select(Customer::as_select())
+            .filter(total.eq(0).and(table_number.eq(n.table_number)))
+            .load(conn);
+
+        match customer {
+            Ok(c) => {
+                if !c.is_empty() {
+                    return Err(ServerError {
+                        error: "Unable to checkin, table already occupied!".to_string(),
+                    });
+                }
+            }
+            _ => {}
+        }
 
         let res = diesel::insert_into(customers::table)
             .values(n)
@@ -184,7 +200,7 @@ impl CustomerRepository for CustomerFactory {
             Err(e) => {
                 eprintln!("{:?}", e);
                 Err(ServerError {
-                    error: "Unable to create item!".to_string(),
+                    error: "Unable to create customer!".to_string(),
                 })
             }
         }

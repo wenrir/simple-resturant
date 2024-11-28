@@ -10,8 +10,8 @@ use async_trait::async_trait;
 
 #[async_trait(?Send)]
 pub(crate) trait OrderRepository {
-    fn find_by_table_number(&self, number: i32) -> ServerResult<Vec<Order>>;
-    fn find_specific_item(&self, number: i32, item: i32) -> ServerResult<Vec<Order>>;
+    fn find(&self, id: &i32) -> ServerResult<Vec<Order>>;
+    fn find_customer(&self, id: &i32) -> ServerResult<Vec<Order>>;
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
     fn delete(&self, item_id: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Order>>;

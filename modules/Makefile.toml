@@ -21,6 +21,7 @@ args = ["build", "--release"]
 [tasks.server]
 command = "cargo"
 args = ["run", "-p", "server"]
+dependencies=["migrate-redo"] # Obviously we don't want to redo in production, but it's simpler for development.
 
 [tasks.server-bin]
 dependencies=["build-release"]
@@ -29,7 +30,7 @@ command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/server"
 [tasks.client]
 command = "cargo"
 args = ["run", "-p", "client"]
-dependencies=["migrate"]
+dependencies=["migrate-redo"]
 
 [tasks.client-bin]
 dependencies=["build-release"]
@@ -71,16 +72,28 @@ args = ["doc"]
 [tasks.test]
 command = "cargo"
 args = ["test"]
-dependencies = ["clean", "migrate"]
+dependencies = ["clean", "migrate-redo"]
 
 # Migrate
+
+# This does not work properly.
+[tasks.install_diesel]
+install_crate = "diesel_cli"
+install_crate_args = ["--force", "--no-default-features", "--features", "postgres"]
+
 [tasks.dbsetup]
-install_create = "diesel_cli"
 command = "diesel"
+cwd="${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/server"
 args = ["setup"]
 
 [tasks.migrate]
-install_create = "diesel_cli"
 command = "diesel"
-args = ["migration", "run", "--database-url", "${DATABASE_URL}"]
+cwd="${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/server"
+args = ["migration", "run"]
 dependencies = ["dbsetup"]
+
+[tasks.migrate-redo]
+command = "diesel"
+cwd="${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/server"
+args = ["migration", "redo", "-n", "2"]
+dependencies = ["migrate"]

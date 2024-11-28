@@ -12,6 +12,7 @@ pub(crate) struct Customer {
     #[serde(skip_serializing)]
     pub(crate) id: i32,
     pub(crate) checked_in_time: String,
+    pub(crate) table_number: i32,
     pub(crate) total: i32,
 }
 
@@ -20,4 +21,5 @@ pub(crate) struct Customer {
 pub struct NewCustomer<'a> {
     pub(crate) checked_in_time: &'a String,
     pub(crate) total: &'a i32,
+    pub(crate) table_number: &'a i32,
 }
