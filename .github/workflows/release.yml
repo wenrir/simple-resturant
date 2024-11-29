@@ -37,7 +37,6 @@ jobs:
         with:
           TOOLCHAIN_VERSION: "1.79.0"
           RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.org"
           SRC_DIR: "modules/${{ matrix.module }}"
           ARCHIVE_TYPES: ${{ matrix.archive }}
           MINIFY: "yes"
