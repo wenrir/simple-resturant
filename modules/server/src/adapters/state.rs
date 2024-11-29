@@ -3,14 +3,14 @@
 use anyhow::Result;
 use serde::Deserialize;
 
-use super::factories::{CustomerFactory, ItemFactory, OrderFactory};
+use super::factories::{ItemFactory, OrderFactory, TableFactory};
 
 /// Server state.
 #[derive(Clone, Deserialize)]
 pub(crate) struct ServerState {
     pub(crate) order_repository: OrderFactory,
     pub(crate) item_repository: ItemFactory,
-    pub(crate) customer_repository: CustomerFactory,
+    pub(crate) table_repository: TableFactory,
 }
 
 impl ServerState {
@@ -18,7 +18,7 @@ impl ServerState {
         Ok(ServerState {
             order_repository: OrderFactory {},
             item_repository: ItemFactory {},
-            customer_repository: CustomerFactory {},
+            table_repository: TableFactory {},
         })
     }
 }

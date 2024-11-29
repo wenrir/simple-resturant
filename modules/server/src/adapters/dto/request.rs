@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub(crate) struct OrderCreateRequest {
     pub(crate) item_id: i32,
-    pub(crate) customer_id: i32,
+    pub(crate) table_id: i32,
     pub(crate) quantity: i32,
 }
 
@@ -16,11 +16,11 @@ pub(crate) struct ItemCreateRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub(crate) struct CustomerGetRequest {
+pub(crate) struct TableGetRequest {
     pub(crate) id: i32,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub(crate) struct CustomerCreateRequest {
+pub(crate) struct TableCreateRequest {
     pub(crate) table_number: i32,
 }

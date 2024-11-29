@@ -1,4 +1,4 @@
-CREATE TABLE customers(
+CREATE TABLE tables(
   id SERIAL PRIMARY KEY,
   checked_in_time TEXT NOT NULL,
   table_number INT NOT NULL,

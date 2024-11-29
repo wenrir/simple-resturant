@@ -130,11 +130,11 @@ async fn main() {
                 }
                 "Table operations" => {
                     let table_options: Vec<&str> = vec![
-                        "Get all customers",
-                        "Get customer information (including orders)",
-                        "Get order information for customer",
-                        "Check in new customer",
-                        "Delete customer order",
+                        "Get all tables",
+                        "Get table information (including orders)",
+                        "Get order information for table",
+                        "Check in new table",
+                        "Delete table order",
                         "Back",
                     ];
                     let a: Result<&str, InquireError> = Select::new(
@@ -145,45 +145,34 @@ async fn main() {
                     match a {
                         Ok(c) => match c {
                             "Back" => {}
-                            "Get all customers" => {
-                                let url = format!("{}/customers", base_url);
+                            "Get all tables" => {
+                                let url = format!("{}/tables", base_url);
                                 get!(client, &url);
                             }
-                            "Get customer information (including orders)" => {
-                                let customer_id: i32 = iprompt!(
-                                    i32,
-                                    "Enter customer id:",
-                                    "Customer ID to fetch",
-                                    "1"
-                                );
+                            "Get table information (including orders)" => {
+                                let table_id: i32 =
+                                    iprompt!(i32, "Enter table id:", "Table ID to fetch", "1");
                                 {
-                                    let url = format!("{}/customers/{}", base_url, customer_id);
+                                    let url = format!("{}/tables/{}", base_url, table_id);
                                     get!(client, &url);
                                 }
-                                println!("Reading orders for customer {:?}", customer_id);
+                                println!("Reading orders for table {:?}", table_id);
                                 {
-                                    let url =
-                                        format!("{}/customers/{}/orders", base_url, customer_id);
+                                    let url = format!("{}/tables/{}/orders", base_url, table_id);
                                     get!(client, &url);
                                 }
                             }
-                            "Get order information for customer" => {
-                                let customer_id: i32 = iprompt!(
-                                    i32,
-                                    "Enter customer id:",
-                                    "Customer ID to fetch",
-                                    "1"
-                                );
+                            "Get order information for table" => {
+                                let table_id: i32 =
+                                    iprompt!(i32, "Enter table id:", "Table ID to fetch", "1");
                                 let item_id: i32 =
                                     iprompt!(i32, "Enter order id:", "Item ID to fetch", "1");
-                                let url = format!(
-                                    "{}/customers/{}/items/{}",
-                                    base_url, customer_id, item_id
-                                );
+                                let url =
+                                    format!("{}/tables/{}/items/{}", base_url, table_id, item_id);
                                 get!(client, &url);
                             }
-                            "Check in new customer" => {
-                                let url = format!("{}/customers/check_in", base_url);
+                            "Check in new table" => {
+                                let url = format!("{}/tables/check_in", base_url);
 
                                 let table: i32 = iprompt!(
                                     i32,
@@ -194,19 +183,17 @@ async fn main() {
 
                                 post!(client, &url, json!({"table_number": table,}));
                             }
-                            "Delete customer order" => {
-                                let customer_id: i32 = iprompt!(
+                            "Delete table order" => {
+                                let table_id: i32 = iprompt!(
                                     i32,
-                                    "Enter customer id:",
-                                    "Customer ID to delete order for",
+                                    "Enter table id:",
+                                    "Table ID to delete order for",
                                     "1"
                                 );
                                 let order_id: i32 =
                                     iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
-                                let url = format!(
-                                    "{}/customers/{}/orders/{}",
-                                    base_url, customer_id, order_id
-                                );
+                                let url =
+                                    format!("{}/tables/{}/orders/{}", base_url, table_id, order_id);
                                 delete!(client, &url);
                             }
                             _ => {}
@@ -226,12 +213,8 @@ async fn main() {
                         Ok(c) => match c {
                             "Back" => {}
                             "Create order" => {
-                                let customer: i32 = iprompt!(
-                                    i32,
-                                    "Enter customer id:",
-                                    "Customer ID for the order",
-                                    "1"
-                                );
+                                let table: i32 =
+                                    iprompt!(i32, "Enter table id:", "Table ID for the order", "1");
                                 let mut items = vec![];
                                 let url = format!("{}/orders", base_url);
                                 // The nesting is getting out of control ...
@@ -247,7 +230,7 @@ async fn main() {
                                     // TODO: Change structure of the order creation to accept a list of items instead.
                                     // E.g.
                                     // {
-                                    //  "customer_id": 1,
+                                    //  "table_id": 1,
                                     //  "items": [
                                     //    { "item_id": 101, "quantity": 2 },
                                     //    { "item_id": 102, "quantity": 5 }
@@ -255,7 +238,7 @@ async fn main() {
                                     //}
 
                                     items.push(json!({
-                                        "customer_id": customer,
+                                        "table_id": table,
                                         "item_id": item,
                                         "quantity": quantity
                                     }));

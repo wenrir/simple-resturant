@@ -6,12 +6,12 @@ use serde::Deserialize;
 use async_trait::async_trait;
 use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
 
-use crate::application::features::{get_all_active_customers, get_customer};
-use crate::application::repo::{CustomerRepository, ItemRepository, OrderRepository};
+use crate::application::features::{get_all_active_tables, get_table};
+use crate::application::repo::{ItemRepository, OrderRepository, TableRepository};
 use crate::db_conn;
-use crate::domain::entities::customer::{Customer, NewCustomer};
 use crate::domain::entities::item::{Item, NewItem};
 use crate::domain::entities::order::{NewOrder, Order};
+use crate::domain::entities::table::{NewTable, Table};
 
 use super::{db_connect, ServerError, ServerResult};
 
@@ -23,13 +23,13 @@ impl OrderRepository for OrderFactory {
     fn find(&self, oid: &i32) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
-        let all_customers = get_all_active_customers(conn);
-        if all_customers.is_err() {
+        let all_tables = get_all_active_tables(conn);
+        if all_tables.is_err() {
             return Err(ServerError {
-                error: "Unable to find customers!".to_string(),
+                error: "Unable to find tables!".to_string(),
             });
         }
-        let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
+        let order = Order::belonging_to(&all_tables.expect("Unable to find tables!"))
             .filter(id.eq(oid))
             .select(Order::as_select())
             .load(conn);
@@ -41,15 +41,15 @@ impl OrderRepository for OrderFactory {
         }
     }
 
-    fn find_customer(&self, cid: &i32) -> ServerResult<Vec<Order>> {
+    fn find_table(&self, cid: &i32) -> ServerResult<Vec<Order>> {
         let conn = db_conn!();
-        let customer = get_customer(conn, cid);
-        if customer.is_err() {
+        let table = get_table(conn, cid);
+        if table.is_err() {
             return Err(ServerError {
-                error: "Unable to find customers!".to_string(),
+                error: "Unable to find tables!".to_string(),
             });
         }
-        let order = Order::belonging_to(&customer.expect("Unable to find customer!"))
+        let order = Order::belonging_to(&table.expect("Unable to find table!"))
             .select(Order::as_select())
             .load(conn);
         match order {
@@ -60,17 +60,17 @@ impl OrderRepository for OrderFactory {
         }
     }
 
-    fn delete_customer_order(&self, cid: &i32, oid: &i32) -> ServerResult<String> {
+    fn delete_table_order(&self, cid: &i32, oid: &i32) -> ServerResult<String> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
-        let customer = get_customer(conn, cid);
-        if customer.is_err() {
+        let table = get_table(conn, cid);
+        if table.is_err() {
             return Err(ServerError {
-                error: "Unable to find customers!".to_string(),
+                error: "Unable to find tables!".to_string(),
             });
         }
         let order = diesel::delete(
-            Order::belonging_to(&customer.expect("Unable to find customer!")).filter(id.eq(oid)),
+            Order::belonging_to(&table.expect("Unable to find table!")).filter(id.eq(oid)),
         )
         .execute(conn);
         match order {
@@ -193,20 +193,20 @@ impl ItemRepository for ItemFactory {
 }
 
 #[derive(Clone, Deserialize)]
-pub(crate) struct CustomerFactory {}
+pub(crate) struct TableFactory {}
 
 #[async_trait(?Send)]
-impl CustomerRepository for CustomerFactory {
-    fn create(&self, n: &NewCustomer) -> ServerResult<Customer> {
-        use crate::domain::entities::customers;
-        use crate::domain::entities::customers::dsl::*;
+impl TableRepository for TableFactory {
+    fn create(&self, n: &NewTable) -> ServerResult<Table> {
+        use crate::domain::entities::tables;
+        use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
 
-        let customer = customers
-            .select(Customer::as_select())
+        let table = tables
+            .select(Table::as_select())
             .filter(total.eq(0).and(table_number.eq(n.table_number)))
             .load(conn);
-        if let Ok(c) = customer {
+        if let Ok(c) = table {
             if !c.is_empty() {
                 return Err(ServerError {
                     error: "Unable to checkin, table already occupied!".to_string(),
@@ -214,9 +214,9 @@ impl CustomerRepository for CustomerFactory {
             }
         }
 
-        let res = diesel::insert_into(customers::table)
+        let res = diesel::insert_into(tables::table)
             .values(n)
-            .returning(Customer::as_returning())
+            .returning(Table::as_returning())
             .get_result(conn);
 
         match res {
@@ -224,36 +224,33 @@ impl CustomerRepository for CustomerFactory {
             Err(e) => {
                 eprintln!("{:?}", e);
                 Err(ServerError {
-                    error: "Unable to create customer!".to_string(),
+                    error: "Unable to create table!".to_string(),
                 })
             }
         }
     }
 
-    fn all(&self) -> ServerResult<Vec<Customer>> {
-        use crate::domain::entities::customers::dsl::*;
+    fn all(&self) -> ServerResult<Vec<Table>> {
+        use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
-        let customer = customers
-            .select(Customer::as_select())
-            .load(conn)
-            .optional();
-        match customer {
+        let table = tables.select(Table::as_select()).load(conn).optional();
+        match table {
             Ok(Some(c)) => Ok(c),
             Ok(None) => Ok(vec![]),
             _ => Err(ServerError {
-                error: "Unable to find customer!".to_string(),
+                error: "Unable to find table!".to_string(),
             }),
         }
     }
-    fn get(&self, _id: &i32) -> ServerResult<Customer> {
-        use crate::domain::entities::customers::dsl::*;
+    fn get(&self, _id: &i32) -> ServerResult<Table> {
+        use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
-        let customer = customers
+        let table = tables
             .filter(id.eq(_id))
-            .select(Customer::as_select())
+            .select(Table::as_select())
             .first(conn);
-        match customer {
-            Ok(customer) => Ok(customer),
+        match table {
+            Ok(table) => Ok(table),
             _ => Err(ServerError {
                 error: "Unable to find item!".to_string(),
             }),

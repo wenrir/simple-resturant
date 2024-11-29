@@ -1,9 +1,9 @@
 use crate::{
     adapters::ServerResult, // Todo, move me out of adapter.
     domain::entities::{
-        customer::{Customer, NewCustomer},
         item::{Item, NewItem},
         order::{NewOrder, Order},
+        table::{NewTable, Table},
     },
 };
 use async_trait::async_trait;
@@ -11,8 +11,8 @@ use async_trait::async_trait;
 #[async_trait(?Send)]
 pub(crate) trait OrderRepository {
     fn find(&self, id: &i32) -> ServerResult<Vec<Order>>;
-    fn find_customer(&self, id: &i32) -> ServerResult<Vec<Order>>;
-    fn delete_customer_order(&self, cid: &i32, oid: &i32) -> ServerResult<String>;
+    fn find_table(&self, id: &i32) -> ServerResult<Vec<Order>>;
+    fn delete_table_order(&self, cid: &i32, oid: &i32) -> ServerResult<String>;
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
     fn delete(&self, item_id: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Order>>;
@@ -26,10 +26,10 @@ pub(crate) trait ItemRepository {
 }
 
 #[async_trait(?Send)]
-pub(crate) trait CustomerRepository {
-    fn create(&self, item: &NewCustomer) -> ServerResult<Customer>;
-    fn get(&self, id: &i32) -> ServerResult<Customer>;
-    fn all(&self) -> ServerResult<Vec<Customer>>;
+pub(crate) trait TableRepository {
+    fn create(&self, item: &NewTable) -> ServerResult<Table>;
+    fn get(&self, id: &i32) -> ServerResult<Table>;
+    fn all(&self) -> ServerResult<Vec<Table>>;
 }
 
 // This could ofcourse be moved to another files, as it's more an interface than a repo.
