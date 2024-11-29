@@ -229,8 +229,13 @@ async fn main() {
                     }
                 }
                 "Order operations" => {
-                    let order_options: Vec<&str> =
-                        vec!["Create order", "Get all orders", "Delete order", "Back"];
+                    let order_options: Vec<&str> = vec![
+                        "Create order",
+                        "Get all orders",
+                        "Get order by id",
+                        "Delete order",
+                        "Back",
+                    ];
                     let a: Result<&str, InquireError> = Select::new(
                         "[order] What would you like to do? (please select an option)",
                         order_options,
@@ -286,6 +291,12 @@ async fn main() {
                             }
                             "Get all orders" => {
                                 let url = format!("{}/orders", base_url);
+                                get!(client, &url);
+                            }
+                            "Get order by id" => {
+                                let order_id: i32 =
+                                    iprompt!(i32, "Enter order id:", "Order ID to find", "1");
+                                let url = format!("{}/orders/{}", base_url, order_id);
                                 get!(client, &url);
                             }
                             "Delete order" => {
