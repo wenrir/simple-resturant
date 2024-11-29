@@ -419,13 +419,20 @@ fn table_routes() -> Router<ServerState> {
 #[openapi(
     info(
         version = "v0.1.0",
-        title = "Simple Resturant API",
+        title = "Simple Restaurant API",
     ),
     paths(
 
         // Table endpoints
         get_table,
+        get_tables,
+        get_table_orders,
+        get_table_order,
+        get_table_items,
         create_table,
+        checkout_table,
+        delete_table_order,
+
         // Item endpoints
         get_item,
         get_items,
@@ -434,14 +441,28 @@ fn table_routes() -> Router<ServerState> {
         // Order endpoints
         create_order,
         get_order_by_id,
+        get_orders,
         delete_order,
     ),
     components(
         schemas(
-        TableGetRequest, ItemCreateRequest, OrderCreateRequest,
-        TableResponse, ItemResponse, OrderResponse,
+            TableGetRequest,
+            ItemCreateRequest,
+            OrderCreateRequest,
+            TableResponse,
+            ItemResponse,
+            OrderResponse,
+            ItemsResponse,
+            TablesResponse,
+            CheckoutResponse,
+            crate::adapters::ServerError,
         )
     ),
+    tags(
+        (name = "Table Operations", description = "API operations related to tables"),
+        (name = "Item Operations", description = "API operations related to menu items"),
+        (name = "Order Operations", description = "API operations related to orders"),
+    )
 )]
 pub(crate) struct Doc {}
 
