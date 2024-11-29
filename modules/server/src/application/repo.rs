@@ -33,11 +33,3 @@ pub(crate) trait TableRepository {
     fn checkout(&self, id: &i32, total: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Table>>;
 }
-
-// This could ofcourse be moved to another files, as it's more an interface than a repo.
-// But in terms of keeping it simple and memory allocations close together, I'm keeping it here.
-#[allow(dead_code)]
-#[async_trait(?Send)]
-pub(crate) trait AbstractFeature<T> {
-    async fn execute(&self) -> ServerResult<T>;
-}

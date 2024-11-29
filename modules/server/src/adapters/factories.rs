@@ -40,7 +40,7 @@ impl OrderRepository for OrderFactory {
                 .select(Item::as_select())
                 .first(conn)
                 .expect("Unable to find item for order!");
-            total += (item.price * order.quantity)
+            total += item.price * order.quantity
         }
 
         Ok(total)

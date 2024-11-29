@@ -1,7 +1,7 @@
 //! application/config.rs
 
 /// Default path to the app configuration file.
-#[allow(unused)]
+#[allow(unused)] // TODO read from config file
 const DEFAULT_CONFIG_PATH: &str = if cfg!(debug_assertions) {
     concat!(env!("CARGO_MANIFEST_DIR"), "/config/config.toml")
 } else {
