@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::domain::entities::customer::Customer;
+use crate::domain::entities::table::Table;
 use crate::domain::entities::item::Item;
 use crate::domain::entities::order::Order;
 
@@ -23,11 +23,11 @@ pub(crate) struct ItemsResponse {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub(crate) struct CustomerResponse {
-    pub(crate) data: Customer,
+pub(crate) struct TableResponse {
+    pub(crate) data: Table,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub(crate) struct CustomersResponse {
-    pub(crate) data: Vec<Customer>,
+pub(crate) struct TablesResponse {
+    pub(crate) data: Vec<Table>,
 }

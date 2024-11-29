@@ -2,11 +2,11 @@
 
 use crate::{
     adapters::state::ServerState,
-    application::repo::{CustomerRepository, ItemRepository, OrderRepository},
+    application::repo::{ItemRepository, OrderRepository, TableRepository},
     domain::entities::{
-        customer::NewCustomer,
         item::NewItem,
         order::{NewOrder, Order},
+        table::NewTable,
     },
 };
 use axum::{
@@ -23,12 +23,8 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use super::{
     dto::{
-        request::{
-            CustomerCreateRequest, CustomerGetRequest, ItemCreateRequest, OrderCreateRequest,
-        },
-        response::{
-            CustomerResponse, CustomersResponse, ItemResponse, ItemsResponse, OrderResponse,
-        },
+        request::{ItemCreateRequest, OrderCreateRequest, TableCreateRequest, TableGetRequest},
+        response::{ItemResponse, ItemsResponse, OrderResponse, TableResponse, TablesResponse},
     },
     ServerResult,
 };
@@ -104,7 +100,7 @@ async fn create_order(
     for req in reqs.iter() {
         let order = NewOrder {
             item_id: &req.item_id,
-            customer_id: &req.customer_id,
+            table_id: &req.table_id,
             published_at: &Local::now().to_rfc3339(),
             quantity: &req.quantity,
         };
@@ -219,58 +215,58 @@ fn item_routes() -> Router<ServerState> {
         .route("/:id", get(get_item))
 }
 
-/// Get customer.
+/// Get table.
 #[utoipa::path(
         get,
-        path = "/api/v1/customers/:id",
+        path = "/api/v1/tables/:id",
         responses(
-            (status = 200, description = "Successfully found item", body = [CustomerResponse]),
+            (status = 200, description = "Successfully found item", body = [TableResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_customer(
+async fn get_table(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
-) -> ServerResult<Json<CustomerResponse>> {
-    match state.customer_repository.get(&id) {
-        Ok(res) => Ok(Json(CustomerResponse { data: res })),
+) -> ServerResult<Json<TableResponse>> {
+    match state.table_repository.get(&id) {
+        Ok(res) => Ok(Json(TableResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
-/// Get customer orders.
+/// Get table orders.
 #[utoipa::path(
         get,
-        path = "/api/v1/customers/:id/orders",
+        path = "/api/v1/tables/:id/orders",
         responses(
             (status = 200, description = "Successfully found item", body = [OrderResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_customer_orders(
+async fn get_table_orders(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
 ) -> ServerResult<Json<OrderResponse>> {
-    match state.order_repository.find_customer(&id) {
+    match state.order_repository.find_table(&id) {
         Ok(res) => Ok(Json(OrderResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
-/// Get customer order.
+/// Get table order.
 #[utoipa::path(
         get,
-        path = "/api/v1/customers/:id/orders/:id",
+        path = "/api/v1/tables/:id/orders/:id",
         responses(
             (status = 200, description = "Successfully found order", body = [OrderResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_customer_order(
+async fn get_table_order(
     State(state): State<ServerState>,
     Path(ids): Path<(i32, i32)>,
 ) -> ServerResult<Json<OrderResponse>> {
-    match state.order_repository.find_customer(&ids.0) {
+    match state.order_repository.find_table(&ids.0) {
         Ok(res) => {
             let r: Vec<Order> = res.into_iter().filter(|i| i.id == ids.1).collect();
             Ok(Json(OrderResponse { data: r }))
@@ -279,20 +275,20 @@ async fn get_customer_order(
     }
 }
 
-/// Get customer items.
+/// Get table items.
 #[utoipa::path(
         get,
-        path = "/api/v1/customers/:id/items/:id",
+        path = "/api/v1/tables/:id/items/:id",
         responses(
             (status = 200, description = "Successfully found order", body = [ItemsResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_customer_items(
+async fn get_table_items(
     State(state): State<ServerState>,
     Path(ids): Path<(i32, i32)>,
 ) -> ServerResult<Json<ItemsResponse>> {
-    match state.order_repository.find_customer(&ids.0) {
+    match state.order_repository.find_table(&ids.0) {
         Ok(res) => {
             let r: Vec<Order> = res.into_iter().filter(|i| i.item_id == ids.1).collect();
             let mut items = vec![];
@@ -312,78 +308,78 @@ async fn get_customer_items(
     }
 }
 
-/// Delete customer order.
+/// Delete table order.
 #[utoipa::path(
         delete,
-        path = "/api/v1/customers/:id/orders/:id",
+        path = "/api/v1/tables/:id/orders/:id",
         responses(
             (status = 200, description = "Successfully deleted item", body = [String]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn delete_customer_order(
+async fn delete_table_order(
     State(state): State<ServerState>,
     Path(ids): Path<(i32, i32)>,
 ) -> ServerResult<String> {
-    match state.order_repository.delete_customer_order(&ids.0, &ids.1) {
+    match state.order_repository.delete_table_order(&ids.0, &ids.1) {
         Ok(res) => Ok(res),
         Err(err) => Err(err),
     }
 }
 
-/// Get customers.
+/// Get tables.
 #[utoipa::path(
         get,
-        path = "/api/v1/customers",
+        path = "/api/v1/tables",
         responses(
-            (status = 200, description = "Successfully found item", body = [CustomersResponse]),
+            (status = 200, description = "Successfully found item", body = [TablesResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn get_customers(State(state): State<ServerState>) -> ServerResult<Json<CustomersResponse>> {
-    match state.customer_repository.all() {
-        Ok(res) => Ok(Json(CustomersResponse { data: res })),
+async fn get_tables(State(state): State<ServerState>) -> ServerResult<Json<TablesResponse>> {
+    match state.table_repository.all() {
+        Ok(res) => Ok(Json(TablesResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
-/// Checks in a customer to table.
+/// Checks in a table to table.
 #[utoipa::path(
         post,
-        request_body = CustomerCreateRequest,
-        path = "/api/v1/customers/check_in",
+        request_body = TableCreateRequest,
+        path = "/api/v1/tables/check_in",
         responses(
-            (status = 200, description = "Checks in a customer", body = [CustomerResponse]),
+            (status = 200, description = "Checks in a table", body = [TableResponse]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
-async fn create_customer(
+async fn create_table(
     State(state): State<ServerState>,
-    Json(req): Json<CustomerCreateRequest>,
-) -> ServerResult<Json<CustomerResponse>> {
+    Json(req): Json<TableCreateRequest>,
+) -> ServerResult<Json<TableResponse>> {
     use chrono::prelude::*;
-    let customer = &NewCustomer {
+    let table = &NewTable {
         table_number: &req.table_number,
         checked_in_time: &Local::now().to_rfc3339(),
         total: &0_i32,
     };
-    match state.customer_repository.create(customer) {
-        Ok(res) => Ok(Json(CustomerResponse { data: res })),
+    match state.table_repository.create(table) {
+        Ok(res) => Ok(Json(TableResponse { data: res })),
         Err(err) => Err(err),
     }
 }
 
-fn customer_routes() -> Router<ServerState> {
+fn table_routes() -> Router<ServerState> {
     Router::new()
-        .route("/", get(get_customers))
-        .route("/:id", get(get_customer))
-        .route("/:id/orders", get(get_customer_orders))
+        .route("/", get(get_tables))
+        .route("/:id", get(get_table))
+        .route("/:id/orders", get(get_table_orders))
         .route(
             "/:id/orders/:id",
-            delete(delete_customer_order).get(get_customer_order),
+            delete(delete_table_order).get(get_table_order),
         )
-        .route("/:id/items/:id", get(get_customer_items))
-        .route("/check_in", post(create_customer))
+        .route("/:id/items/:id", get(get_table_items))
+        .route("/check_in", post(create_table))
 }
 #[derive(OpenApi)]
 #[openapi(
@@ -393,9 +389,9 @@ fn customer_routes() -> Router<ServerState> {
     ),
     paths(
 
-        // Customer endpoints
-        get_customer,
-        create_customer,
+        // Table endpoints
+        get_table,
+        create_table,
         // Item endpoints
         get_item,
         get_items,
@@ -408,8 +404,8 @@ fn customer_routes() -> Router<ServerState> {
     ),
     components(
         schemas(
-        CustomerGetRequest, ItemCreateRequest, OrderCreateRequest,
-        CustomerResponse, ItemResponse, OrderResponse,
+        TableGetRequest, ItemCreateRequest, OrderCreateRequest,
+        TableResponse, ItemResponse, OrderResponse,
         )
     ),
 )]
@@ -420,7 +416,7 @@ pub(crate) fn routes(state: ServerState) -> Router {
     let router = Router::new()
         .nest("/api/v1/orders", order_routes())
         .nest("/api/v1/items", item_routes())
-        .nest("/api/v1/customers", customer_routes())
+        .nest("/api/v1/tables", table_routes())
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", Doc::openapi()));
     router.fallback(api_fallback).with_state(state)
 }
@@ -467,18 +463,18 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_customer() {
+    async fn test_create_table() {
         let server = build_test_server();
         {
             let response = server
-                .post("/api/v1/customers/check_in")
+                .post("/api/v1/tables/check_in")
                 .json(&json!({"table_number": 1}))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
         }
         {
             let response = server
-                .get("/api/v1/customers")
+                .get("/api/v1/tables")
                 .json(&json!({
                     "id": 1,
                 }))
@@ -492,7 +488,7 @@ mod tests {
         let server = build_test_server();
         {
             let response = server
-                .post("/api/v1/customers/check_in")
+                .post("/api/v1/tables/check_in")
                 .json(&json!({
 
                         "table_number": 10,
@@ -515,28 +511,28 @@ mod tests {
                 .post("/api/v1/orders")
                 .json(&json!([
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 10,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 1,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 5,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 6,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 100,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 50,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 70,},
                     {"item_id": 1,
-                    "customer_id": 2,
+                    "table_id": 2,
                     "quantity": 1,},
                 ]))
                 .await;

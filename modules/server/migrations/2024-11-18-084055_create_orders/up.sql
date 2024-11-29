@@ -3,5 +3,5 @@ CREATE TABLE orders (
   published_at TEXT NOT NULL,
   quantity INT NOT NULL,
   item_id INTEGER NOT NULL REFERENCES items(id),
-  customer_id INTEGER NOT NULL REFERENCES customers(id)
+  table_id INTEGER NOT NULL REFERENCES tables(id)
 );
