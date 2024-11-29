@@ -17,6 +17,7 @@ use crate::domain::entities::order::{NewOrder, Order};
 use crate::domain::entities::table::{NewTable, Table};
 
 use super::{ServerError, ServerResult};
+use log::error;
 
 /// Macro database query with ServerError handling.
 macro_rules! db_query {
@@ -24,7 +25,7 @@ macro_rules! db_query {
         match $query {
             Ok(result) => Ok(result),
             Err(err) => {
-                eprintln!("{:?}", err);
+                error!("{:?}", err);
                 Err(ServerError {
                     error: $error.to_string(),
                 })
@@ -40,7 +41,7 @@ macro_rules! db_query_optional {
             Ok(Some(result)) => Ok(result),
             Ok(None) => Ok($rnone),
             Err(err) => {
-                eprintln!("{:?}", err);
+                error!("{:?}", err);
                 Err(ServerError {
                     error: $error.to_string(),
                 })
@@ -49,7 +50,7 @@ macro_rules! db_query_optional {
     };
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct OrderFactory {
     pub(crate) connection_pool: Pool<ConnectionManager<PgConnection>>,
 }
@@ -158,7 +159,6 @@ impl OrderRepository for OrderFactory {
     /// Create a new order
     fn create(&self, o: &NewOrder) -> ServerResult<Order> {
         use crate::domain::entities::orders;
-        println!("Creating order!");
         db_query!(
             diesel::insert_into(orders::table)
                 .values(o)
@@ -175,7 +175,7 @@ impl OrderRepository for OrderFactory {
         match res {
             Ok(_) => Ok(()),
             Err(e) => {
-                eprintln!("{:?}", e);
+                error!("{:?}", e);
                 Err(ServerError {
                     error: "Unable to create order!".to_string(),
                 })
@@ -184,7 +184,7 @@ impl OrderRepository for OrderFactory {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct ItemFactory {
     pub(crate) connection_pool: Pool<ConnectionManager<PgConnection>>,
 }
@@ -229,7 +229,7 @@ impl ItemRepository for ItemFactory {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct TableFactory {
     pub(crate) connection_pool: Pool<ConnectionManager<PgConnection>>,
 }
@@ -246,7 +246,7 @@ impl TableRepository for TableFactory {
         match r {
             Ok(_r) => Ok(()),
             Err(e) => {
-                eprintln!("{:?}", e);
+                error!("{:?}", e);
                 Err(ServerError {
                     error: "Unable to create table!".to_string(),
                 })
