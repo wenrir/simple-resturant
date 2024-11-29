@@ -15,6 +15,37 @@ use crate::domain::entities::table::{NewTable, Table};
 
 use super::{db_connect, ServerError, ServerResult};
 
+/// Macro database query with ServerError handling.
+macro_rules! db_query {
+    ($query:expr, $error:expr) => {
+        match $query {
+            Ok(result) => Ok(result),
+            Err(err) => {
+                eprintln!("{:?}", err);
+                Err(ServerError {
+                    error: $error.to_string(),
+                })
+            }
+        }
+    };
+}
+
+/// Macro database query (optional) with ServerError handling.
+macro_rules! db_query_optional {
+    ($query:expr, $error:expr, $rnone:expr) => {
+        match $query {
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Ok($rnone),
+            Err(err) => {
+                eprintln!("{:?}", err);
+                Err(ServerError {
+                    error: $error.to_string(),
+                })
+            }
+        }
+    };
+}
+
 #[derive(Clone, Deserialize)]
 pub(crate) struct OrderFactory {}
 
@@ -55,16 +86,13 @@ impl OrderRepository for OrderFactory {
                 error: "Unable to find tables!".to_string(),
             });
         }
-        let order = Order::belonging_to(&all_tables.expect("Unable to find tables!"))
-            .filter(id.eq(oid))
-            .select(Order::as_select())
-            .load(conn);
-        match order {
-            Ok(order) => Ok(order),
-            _ => Err(ServerError {
-                error: "Unable to find order!".to_string(),
-            }),
-        }
+        db_query!(
+            Order::belonging_to(&all_tables.expect("Unable to find tables!"))
+                .filter(id.eq(oid))
+                .select(Order::as_select())
+                .load(conn),
+            "Unable to find order!"
+        )
     }
 
     /// Find orders for table
@@ -76,15 +104,12 @@ impl OrderRepository for OrderFactory {
                 error: "Unable to find tables!".to_string(),
             });
         }
-        let order = Order::belonging_to(&table.expect("Unable to find table!"))
-            .select(Order::as_select())
-            .load(conn);
-        match order {
-            Ok(order) => Ok(order),
-            _ => Err(ServerError {
-                error: "Unable to find order!".to_string(),
-            }),
-        }
+        db_query!(
+            Order::belonging_to(&table.expect("Unable to find table!"))
+                .select(Order::as_select())
+                .load(conn),
+            "Unable to find order for table"
+        )
     }
 
     /// Delete a tables order
@@ -120,35 +145,24 @@ impl OrderRepository for OrderFactory {
     fn all(&self) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
-        let order = orders.select(Order::as_select()).load(conn).optional();
-        match order {
-            Ok(Some(order)) => Ok(order),
-            Ok(None) => Ok(vec![]),
-            _ => Err(ServerError {
-                error: "Unable to find orders!".to_string(),
-            }),
-        }
+        db_query_optional!(
+            orders.select(Order::as_select()).load(conn).optional(),
+            "Unable to find orders",
+            vec![]
+        )
     }
 
     /// Create a new order
     fn create(&self, o: &NewOrder) -> ServerResult<Order> {
         use crate::domain::entities::orders;
         let conn = db_conn!();
-
-        let res = diesel::insert_into(orders::table)
-            .values(o)
-            .returning(Order::as_returning())
-            .get_result(conn);
-
-        match res {
-            Ok(r) => Ok(r),
-            Err(e) => {
-                eprintln!("{:?}", e);
-                Err(ServerError {
-                    error: "Unable to create order!".to_string(),
-                })
-            }
-        }
+        db_query!(
+            diesel::insert_into(orders::table)
+                .values(o)
+                .returning(Order::as_returning())
+                .get_result(conn),
+            "Unable to create order!"
+        )
     }
 
     /// Delete an order
@@ -180,50 +194,37 @@ impl ItemRepository for ItemFactory {
         use crate::domain::entities::items;
         let conn = db_conn!();
 
-        let res = diesel::insert_into(items::table)
-            .values(n)
-            .returning(Item::as_returning())
-            .get_result(conn);
-
-        match res {
-            Ok(r) => Ok(r),
-            Err(e) => {
-                eprintln!("{:?}", e);
-                Err(ServerError {
-                    error: "Unable to create item!".to_string(),
-                })
-            }
-        }
+        db_query!(
+            diesel::insert_into(items::table)
+                .values(n)
+                .returning(Item::as_returning())
+                .get_result(conn),
+            "Unable to create item"
+        )
     }
 
     /// Get all items
     fn all(&self) -> ServerResult<Vec<Item>> {
         use crate::domain::entities::items::dsl::*;
         let conn = db_conn!();
-        let item = items.select(Item::as_select()).load(conn).optional();
-        match item {
-            Ok(Some(item)) => Ok(item),
-            Ok(None) => Ok(vec![]),
-            _ => Err(ServerError {
-                error: "Unable to find item!".to_string(),
-            }),
-        }
+        db_query_optional!(
+            items.select(Item::as_select()).load(conn).optional(),
+            "Unable to find all items ",
+            vec![]
+        )
     }
 
     /// Get an item base on id
     fn get(&self, _id: &i32) -> ServerResult<Item> {
         use crate::domain::entities::items::dsl::*;
         let conn = db_conn!();
-        let item = items
-            .filter(id.eq(_id))
-            .select(Item::as_select())
-            .first(conn);
-        match item {
-            Ok(item) => Ok(item),
-            _ => Err(ServerError {
-                error: "Unable to find item!".to_string(),
-            }),
-        }
+        db_query!(
+            items
+                .filter(id.eq(_id))
+                .select(Item::as_select())
+                .first(conn),
+            "Unable to get item"
+        )
     }
 }
 
@@ -263,56 +264,42 @@ impl TableRepository for TableFactory {
             .load(conn);
         if let Ok(c) = table {
             if !c.is_empty() {
-                println!("CC >> {:?}", c);
                 return Err(ServerError {
                     error: "Unable to checkin, table already occupied!".to_string(),
                 });
             }
         }
 
-        let res = diesel::insert_into(tables::table)
-            .values(n)
-            .returning(Table::as_returning())
-            .get_result(conn);
-
-        match res {
-            Ok(r) => Ok(r),
-            Err(e) => {
-                eprintln!("{:?}", e);
-                Err(ServerError {
-                    error: "Unable to create table!".to_string(),
-                })
-            }
-        }
+        db_query!(
+            diesel::insert_into(tables::table)
+                .values(n)
+                .returning(Table::as_returning())
+                .get_result(conn),
+            "Unable to create table"
+        )
     }
 
     /// Read all tables
     fn all(&self) -> ServerResult<Vec<Table>> {
         use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
-        let table = tables.select(Table::as_select()).load(conn).optional();
-        match table {
-            Ok(Some(c)) => Ok(c),
-            Ok(None) => Ok(vec![]),
-            _ => Err(ServerError {
-                error: "Unable to find table!".to_string(),
-            }),
-        }
+        db_query_optional!(
+            tables.select(Table::as_select()).load(conn).optional(),
+            "Unable to find all tables!",
+            vec![]
+        )
     }
 
     /// Get specific table..
     fn get(&self, _id: &i32) -> ServerResult<Table> {
         use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
-        let table = tables
-            .filter(table_number.eq(_id).and(total.eq(-1_i32)))
-            .select(Table::as_select())
-            .first(conn);
-        match table {
-            Ok(table) => Ok(table),
-            _ => Err(ServerError {
-                error: "Unable to find item!".to_string(),
-            }),
-        }
+        db_query!(
+            tables
+                .filter(table_number.eq(_id).and(total.eq(-1_i32)))
+                .select(Table::as_select())
+                .first(conn),
+            "Unable to find specific table "
+        )
     }
 }
