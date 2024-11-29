@@ -19,20 +19,24 @@ args = ["build", "--release"]
 
 # Running the program(s)
 [tasks.server]
+workspace=false
 command = "cargo"
 args = ["run", "-p", "server"]
 dependencies=["migrate-redo"] # Obviously we don't want to redo in production, but it's simpler for development.
 
 [tasks.server-bin]
+workspace=false
 dependencies=["build-release"]
 command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/server"
 
 [tasks.client]
+workspace=false
 command = "cargo"
 args = ["run", "-p", "client"]
 dependencies=["migrate-redo"]
 
 [tasks.client-bin]
+workspace=false
 dependencies=["build-release"]
 command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/client"
 
@@ -44,11 +48,13 @@ run_task = {name = ["client-bin", "server-bin"], parallel=true}
 
 # Formatting, Linting
 [tasks.fmt]
+workspace=false
 install_crate = "rustfmt"
 command = "cargo"
 args = ["fmt", "--", "--emit=files"]
 
 [tasks.clippy]
+workspace=false
 install_crate = "clippy"
 command = "cargo"
 args = [
@@ -66,10 +72,12 @@ dependencies=["clippy", "fmt"]
 
 # Documentation
 [tasks.doc]
+workspace=false
 command = "cargo"
 args = ["doc"]
 
 [tasks.test]
+workspace=false
 command = "cargo"
 args = ["test"]
 dependencies = ["clean", "migrate-redo"]
