@@ -3,7 +3,11 @@
 use crate::{
     adapters::state::ServerState,
     application::repo::{CustomerRepository, ItemRepository, OrderRepository},
-    domain::entities::{customer::NewCustomer, item::NewItem, order::NewOrder},
+    domain::entities::{
+        customer::NewCustomer,
+        item::NewItem,
+        order::{NewOrder, Order},
+    },
 };
 use axum::{
     extract::{Path, Request, State},
@@ -253,6 +257,61 @@ async fn get_customer_orders(
     }
 }
 
+/// Get customer order.
+#[utoipa::path(
+        get,
+        path = "/api/v1/customers/:id/orders/:id",
+        responses(
+            (status = 200, description = "Successfully found order", body = [OrderResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn get_customer_order(
+    State(state): State<ServerState>,
+    Path(ids): Path<(i32, i32)>,
+) -> ServerResult<Json<OrderResponse>> {
+    match state.order_repository.find_customer(&ids.0) {
+        Ok(res) => {
+            let r: Vec<Order> = res.into_iter().filter(|i| i.id == ids.1).collect();
+            Ok(Json(OrderResponse { data: r }))
+        }
+        Err(err) => Err(err),
+    }
+}
+
+/// Get customer items.
+#[utoipa::path(
+        get,
+        path = "/api/v1/customers/:id/items/:id",
+        responses(
+            (status = 200, description = "Successfully found order", body = [ItemsResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn get_customer_items(
+    State(state): State<ServerState>,
+    Path(ids): Path<(i32, i32)>,
+) -> ServerResult<Json<ItemsResponse>> {
+    match state.order_repository.find_customer(&ids.0) {
+        Ok(res) => {
+            let r: Vec<Order> = res.into_iter().filter(|i| i.item_id == ids.1).collect();
+            let mut items = vec![];
+            for order in r {
+                match state.item_repository.get(&order.item_id) {
+                    Ok(item) => items.push(item),
+                    Err(err) => {
+                        eprintln!("Failed to fetch item with ID {}: {:?}", order.item_id, err);
+                        return Err(err);
+                    }
+                }
+            }
+
+            Ok(Json(ItemsResponse { data: items }))
+        }
+        Err(err) => Err(err),
+    }
+}
+
 /// Delete customer order.
 #[utoipa::path(
         delete,
@@ -319,7 +378,11 @@ fn customer_routes() -> Router<ServerState> {
         .route("/", get(get_customers))
         .route("/:id", get(get_customer))
         .route("/:id/orders", get(get_customer_orders))
-        .route("/:id/orders/:id", delete(delete_customer_order))
+        .route(
+            "/:id/orders/:id",
+            delete(delete_customer_order).get(get_customer_order),
+        )
+        .route("/:id/items/:id", get(get_customer_items))
         .route("/check_in", post(create_customer))
 }
 #[derive(OpenApi)]

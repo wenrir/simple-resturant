@@ -132,6 +132,7 @@ async fn main() {
                     let table_options: Vec<&str> = vec![
                         "Get all customers",
                         "Get customer information (including orders)",
+                        "Get order information for customer",
                         "Check in new customer",
                         "Delete customer order",
                         "Back",
@@ -165,6 +166,21 @@ async fn main() {
                                         format!("{}/customers/{}/orders", base_url, customer_id);
                                     get!(client, &url);
                                 }
+                            }
+                            "Get order information for customer" => {
+                                let customer_id: i32 = iprompt!(
+                                    i32,
+                                    "Enter customer id:",
+                                    "Customer ID to fetch",
+                                    "1"
+                                );
+                                let item_id: i32 =
+                                    iprompt!(i32, "Enter order id:", "Item ID to fetch", "1");
+                                let url = format!(
+                                    "{}/customers/{}/items/{}",
+                                    base_url, customer_id, item_id
+                                );
+                                get!(client, &url);
                             }
                             "Check in new customer" => {
                                 let url = format!("{}/customers/check_in", base_url);

@@ -20,7 +20,7 @@ pub(crate) struct OrderFactory {}
 
 #[async_trait(?Send)]
 impl OrderRepository for OrderFactory {
-    fn find(&self, _id: &i32) -> ServerResult<Vec<Order>> {
+    fn find(&self, oid: &i32) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
         let all_customers = get_all_active_customers(conn);
@@ -30,7 +30,7 @@ impl OrderRepository for OrderFactory {
             });
         }
         let order = Order::belonging_to(&all_customers.expect("Unable to find customers!"))
-            .filter(id.eq(_id))
+            .filter(id.eq(oid))
             .select(Order::as_select())
             .load(conn);
         match order {
