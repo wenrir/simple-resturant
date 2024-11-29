@@ -128,16 +128,16 @@ async fn create_order(
         request_body = (i32,i32),
         path = "/api/v1/orders/:id",
         responses(
-            (status = 200, description = "Success deleted order", body = [String]),
+            (status = 204, description = "Success deleted order", body = [String]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
 async fn delete_order(
     State(state): State<ServerState>,
     Path(id): Path<i32>,
-) -> ServerResult<String> {
+) -> ServerResult<StatusCode> {
     match state.order_repository.delete(&id) {
-        Ok(_) => Ok("OK".to_string()),
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
         Err(err) => Err(err),
     }
 }
@@ -317,16 +317,16 @@ async fn get_customer_items(
         delete,
         path = "/api/v1/customers/:id/orders/:id",
         responses(
-            (status = 200, description = "Successfully deleted item", body = [String]),
+            (status = 204, description = "Successfully deleted item", body = [String]),
             (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
         )
     )]
 async fn delete_customer_order(
     State(state): State<ServerState>,
     Path(ids): Path<(i32, i32)>,
-) -> ServerResult<String> {
+) -> ServerResult<StatusCode> {
     match state.order_repository.delete_customer_order(&ids.0, &ids.1) {
-        Ok(res) => Ok(res),
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
         Err(err) => Err(err),
     }
 }
