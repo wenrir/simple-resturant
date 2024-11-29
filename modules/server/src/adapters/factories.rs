@@ -20,6 +20,32 @@ pub(crate) struct OrderFactory {}
 
 #[async_trait(?Send)]
 impl OrderRepository for OrderFactory {
+    /// Calculate total for a table!
+    fn total(&self, tid: &i32) -> ServerResult<i32> {
+        let conn = db_conn!();
+        let active_table = get_table(conn, tid);
+        if active_table.is_err() {
+            return Err(ServerError {
+                error: "Unable to find tables!".to_string(),
+            });
+        }
+        let _orders = Order::belonging_to(&active_table.expect("Unable to find tables!"))
+            .select(Order::as_select())
+            .load(conn)
+            .expect("Unable to find table!");
+        let mut total = 0;
+        for order in _orders {
+            let item = crate::domain::entities::items::dsl::items
+                .filter(crate::domain::entities::items::dsl::id.eq(order.item_id))
+                .select(Item::as_select())
+                .first(conn)
+                .expect("Unable to find item for order!");
+            total += item.price * order.quantity
+        }
+
+        Ok(total)
+    }
+    /// Find an order
     fn find(&self, oid: &i32) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
@@ -41,6 +67,7 @@ impl OrderRepository for OrderFactory {
         }
     }
 
+    /// Find orders for table
     fn find_table(&self, cid: &i32) -> ServerResult<Vec<Order>> {
         let conn = db_conn!();
         let table = get_table(conn, cid);
@@ -60,6 +87,7 @@ impl OrderRepository for OrderFactory {
         }
     }
 
+    /// Delete a tables order
     fn delete_table_order(&self, cid: &i32, oid: &i32) -> ServerResult<String> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
@@ -88,6 +116,7 @@ impl OrderRepository for OrderFactory {
         }
     }
 
+    /// Find all orders
     fn all(&self) -> ServerResult<Vec<Order>> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
@@ -101,6 +130,7 @@ impl OrderRepository for OrderFactory {
         }
     }
 
+    /// Create a new order
     fn create(&self, o: &NewOrder) -> ServerResult<Order> {
         use crate::domain::entities::orders;
         let conn = db_conn!();
@@ -120,6 +150,8 @@ impl OrderRepository for OrderFactory {
             }
         }
     }
+
+    /// Delete an order
     fn delete(&self, i: &i32) -> ServerResult<()> {
         use crate::domain::entities::orders::dsl::*;
         let conn = db_conn!();
@@ -143,6 +175,7 @@ pub(crate) struct ItemFactory {}
 
 #[async_trait(?Send)]
 impl ItemRepository for ItemFactory {
+    /// Create an item
     fn create(&self, n: &NewItem) -> ServerResult<Item> {
         use crate::domain::entities::items;
         let conn = db_conn!();
@@ -163,6 +196,7 @@ impl ItemRepository for ItemFactory {
         }
     }
 
+    /// Get all items
     fn all(&self) -> ServerResult<Vec<Item>> {
         use crate::domain::entities::items::dsl::*;
         let conn = db_conn!();
@@ -176,6 +210,7 @@ impl ItemRepository for ItemFactory {
         }
     }
 
+    /// Get an item base on id
     fn get(&self, _id: &i32) -> ServerResult<Item> {
         use crate::domain::entities::items::dsl::*;
         let conn = db_conn!();
@@ -197,6 +232,26 @@ pub(crate) struct TableFactory {}
 
 #[async_trait(?Send)]
 impl TableRepository for TableFactory {
+    /// Checkout a table by caclulating it's total
+    fn checkout(&self, _id: &i32, _total: &i32) -> ServerResult<()> {
+        use crate::domain::entities::tables::dsl::*;
+        let conn = db_conn!();
+        let r = diesel::update(tables)
+            .filter(table_number.eq(_id).and(total.eq(-1_i32)))
+            .set(total.eq(_total))
+            .execute(conn);
+        match r {
+            Ok(_r) => Ok(()),
+            Err(e) => {
+                eprintln!("{:?}", e);
+                Err(ServerError {
+                    error: "Unable to create table!".to_string(),
+                })
+            }
+        }
+    }
+
+    /// Create a table
     fn create(&self, n: &NewTable) -> ServerResult<Table> {
         use crate::domain::entities::tables;
         use crate::domain::entities::tables::dsl::*;
@@ -204,10 +259,11 @@ impl TableRepository for TableFactory {
 
         let table = tables
             .select(Table::as_select())
-            .filter(total.eq(0).and(table_number.eq(n.table_number)))
+            .filter(total.eq(-1_i32).and(table_number.eq(n.table_number)))
             .load(conn);
         if let Ok(c) = table {
             if !c.is_empty() {
+                println!("CC >> {:?}", c);
                 return Err(ServerError {
                     error: "Unable to checkin, table already occupied!".to_string(),
                 });
@@ -230,6 +286,7 @@ impl TableRepository for TableFactory {
         }
     }
 
+    /// Read all tables
     fn all(&self) -> ServerResult<Vec<Table>> {
         use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
@@ -242,11 +299,13 @@ impl TableRepository for TableFactory {
             }),
         }
     }
+
+    /// Get specific table..
     fn get(&self, _id: &i32) -> ServerResult<Table> {
         use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
         let table = tables
-            .filter(id.eq(_id))
+            .filter(table_number.eq(_id).and(total.eq(-1_i32)))
             .select(Table::as_select())
             .first(conn);
         match table {

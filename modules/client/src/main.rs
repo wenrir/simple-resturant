@@ -104,12 +104,16 @@ async fn main() {
                                     .prompt()
                                     .expect("Unable to read description!");
 
+                                let price: i32 =
+                                    iprompt!(i32, "Enter item price:", "Item price", "1");
+
                                 let url = format!("{}/items", base_url);
                                 post!(
                                     client,
                                     &url,
                                     json!({
                                         "description": description.to_string(),
+                                        "price": price,
                                     })
                                 );
                             }
@@ -134,6 +138,7 @@ async fn main() {
                         "Get table information (including orders)",
                         "Get order information for table",
                         "Check in new table",
+                        "Check out table",
                         "Delete table order",
                         "Back",
                     ];
@@ -150,8 +155,12 @@ async fn main() {
                                 get!(client, &url);
                             }
                             "Get table information (including orders)" => {
-                                let table_id: i32 =
-                                    iprompt!(i32, "Enter table id:", "Table ID to fetch", "1");
+                                let table_id: i32 = iprompt!(
+                                    i32,
+                                    "Enter table number:",
+                                    "Table Number to fetch",
+                                    "1"
+                                );
                                 {
                                     let url = format!("{}/tables/{}", base_url, table_id);
                                     get!(client, &url);
@@ -163,8 +172,12 @@ async fn main() {
                                 }
                             }
                             "Get order information for table" => {
-                                let table_id: i32 =
-                                    iprompt!(i32, "Enter table id:", "Table ID to fetch", "1");
+                                let table_id: i32 = iprompt!(
+                                    i32,
+                                    "Enter table number:",
+                                    "Table Number to fetch",
+                                    "1"
+                                );
                                 let item_id: i32 =
                                     iprompt!(i32, "Enter order id:", "Item ID to fetch", "1");
                                 let url =
@@ -176,18 +189,29 @@ async fn main() {
 
                                 let table: i32 = iprompt!(
                                     i32,
-                                    "Enter table id:",
-                                    "Table ID to place an order for",
+                                    "Enter table number:",
+                                    "Table Number to place an order for",
                                     "0"
                                 );
 
                                 post!(client, &url, json!({"table_number": table,}));
                             }
+                            "Check out table" => {
+                                let table: i32 = iprompt!(
+                                    i32,
+                                    "Enter table number:",
+                                    "Table number to place an order for",
+                                    "0"
+                                );
+                                let url = format!("{}/tables/{}/check_out", base_url, table);
+
+                                post!(client, &url, json!({}));
+                            }
                             "Delete table order" => {
                                 let table_id: i32 = iprompt!(
                                     i32,
-                                    "Enter table id:",
-                                    "Table ID to delete order for",
+                                    "Enter table number:",
+                                    "Table Number to delete order for",
                                     "1"
                                 );
                                 let order_id: i32 =
@@ -213,8 +237,12 @@ async fn main() {
                         Ok(c) => match c {
                             "Back" => {}
                             "Create order" => {
-                                let table: i32 =
-                                    iprompt!(i32, "Enter table id:", "Table ID for the order", "1");
+                                let table: i32 = iprompt!(
+                                    i32,
+                                    "Enter table number:",
+                                    "Table number for the order",
+                                    "1"
+                                );
                                 let mut items = vec![];
                                 let url = format!("{}/orders", base_url);
                                 // The nesting is getting out of control ...

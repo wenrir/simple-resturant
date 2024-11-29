@@ -5,6 +5,7 @@ diesel::table! {
         id -> Int4,
         description -> Text,
         estimated_minutes -> Int4,
+        price -> Int4,
     }
 }
 

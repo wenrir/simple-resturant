@@ -13,6 +13,7 @@ pub(crate) struct OrderCreateRequest {
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub(crate) struct ItemCreateRequest {
     pub(crate) description: String,
+    pub(crate) price: i32,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
