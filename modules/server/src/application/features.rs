@@ -16,7 +16,7 @@ pub(crate) fn get_all_active_tables(conn: &mut PgConnection) -> Result<Vec<Table
     use crate::domain::entities::tables;
     let all = tables::table
         .select(Table::as_select())
-        .filter(total.eq(0))
+        .filter(total.eq(-1))
         .load(conn)?;
     Ok(all)
 }
@@ -26,7 +26,11 @@ pub(crate) fn get_table(conn: &mut PgConnection, cid: &i32) -> Result<Vec<Table>
     use crate::domain::entities::tables;
     let table = tables::table
         .select(Table::as_select())
-        .filter(crate::domain::entities::tables::id.eq(cid))
+        .filter(
+            crate::domain::entities::tables::table_number
+                .eq(cid)
+                .and(crate::domain::entities::tables::total.eq(-1_i32)),
+        )
         .load(conn)?;
     Ok(table)
 }

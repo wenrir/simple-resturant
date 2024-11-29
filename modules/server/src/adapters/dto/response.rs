@@ -31,3 +31,8 @@ pub(crate) struct TableResponse {
 pub(crate) struct TablesResponse {
     pub(crate) data: Vec<Table>,
 }
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub(crate) struct CheckoutResponse {
+    pub(crate) data: i32,
+}

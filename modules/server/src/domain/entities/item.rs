@@ -13,6 +13,7 @@ pub(crate) struct Item {
     #[allow(unused)]
     pub(crate) id: i32,
     pub(crate) estimated_minutes: i32,
+    pub(crate) price: i32,
     pub(crate) description: String,
 }
 
@@ -21,4 +22,5 @@ pub(crate) struct Item {
 pub struct NewItem<'a> {
     pub(crate) description: &'a String,
     pub(crate) estimated_minutes: &'a i32,
+    pub(crate) price: &'a i32,
 }

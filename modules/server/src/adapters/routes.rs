@@ -24,7 +24,10 @@ use utoipa_swagger_ui::SwaggerUi;
 use super::{
     dto::{
         request::{ItemCreateRequest, OrderCreateRequest, TableCreateRequest, TableGetRequest},
-        response::{ItemResponse, ItemsResponse, OrderResponse, TableResponse, TablesResponse},
+        response::{
+            CheckoutResponse, ItemResponse, ItemsResponse, OrderResponse, TableResponse,
+            TablesResponse,
+        },
     },
     ServerResult,
 };
@@ -98,9 +101,15 @@ async fn create_order(
     use chrono::prelude::*;
     let mut responses = Vec::new();
     for req in reqs.iter() {
+        let table_id = state.table_repository.get(&req.table_id);
+        if table_id.is_err() {
+            return Err(crate::adapters::ServerError {
+                error: "Unable to find table!".to_string(),
+            });
+        }
         let order = NewOrder {
             item_id: &req.item_id,
-            table_id: &req.table_id,
+            table_id: &table_id.expect("Unable to find table id").id,
             published_at: &Local::now().to_rfc3339(),
             quantity: &req.quantity,
         };
@@ -202,6 +211,7 @@ async fn create_item(
     let item = NewItem {
         description: &req.description,
         estimated_minutes: &rng.gen_range(5..=15),
+        price: &req.price,
     };
     match state.item_repository.create(&item) {
         Ok(res) => Ok(Json(ItemResponse { data: res })),
@@ -343,7 +353,7 @@ async fn get_tables(State(state): State<ServerState>) -> ServerResult<Json<Table
     }
 }
 
-/// Checks in a table to table.
+/// Checks in a table.
 #[utoipa::path(
         post,
         request_body = TableCreateRequest,
@@ -361,10 +371,33 @@ async fn create_table(
     let table = &NewTable {
         table_number: &req.table_number,
         checked_in_time: &Local::now().to_rfc3339(),
-        total: &0_i32,
+        total: &-1_i32,
     };
     match state.table_repository.create(table) {
         Ok(res) => Ok(Json(TableResponse { data: res })),
+        Err(err) => Err(err),
+    }
+}
+
+/// Checks out a table.
+#[utoipa::path(
+        post,
+        path = "/api/v1/tables/:id/check_out",
+        responses(
+            (status = 200, description = "Checks in a table", body = [CheckoutResponse]),
+            (status = 500, description = "Internal server error", body = [crate::adapters::ServerError])
+        )
+    )]
+async fn checkout_table(
+    State(state): State<ServerState>,
+    Path(id): Path<i32>,
+) -> ServerResult<Json<CheckoutResponse>> {
+    let total = state
+        .order_repository
+        .total(&id)
+        .expect("Unable to calculate total!");
+    match state.table_repository.checkout(&id, &total) {
+        Ok(_r) => Ok(Json(CheckoutResponse { data: total })),
         Err(err) => Err(err),
     }
 }
@@ -380,6 +413,7 @@ fn table_routes() -> Router<ServerState> {
         )
         .route("/:id/items/:id", get(get_table_items))
         .route("/check_in", post(create_table))
+        .route("/:id/check_out", post(checkout_table))
 }
 #[derive(OpenApi)]
 #[openapi(
@@ -448,6 +482,7 @@ mod tests {
                 .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
+                    "price": 1,
                 }))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);
@@ -501,6 +536,7 @@ mod tests {
                 .post("/api/v1/items")
                 .json(&json!({
                     "description": "Some good tasting item!",
+                    "price": 10,
                 }))
                 .await;
             assert_eq!(response.status_code(), StatusCode::OK);

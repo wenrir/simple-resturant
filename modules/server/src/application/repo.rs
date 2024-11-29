@@ -16,6 +16,7 @@ pub(crate) trait OrderRepository {
     fn create(&self, order: &NewOrder) -> ServerResult<Order>;
     fn delete(&self, item_id: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Order>>;
+    fn total(&self, oid: &i32) -> ServerResult<i32>;
 }
 
 #[async_trait(?Send)]
@@ -29,6 +30,7 @@ pub(crate) trait ItemRepository {
 pub(crate) trait TableRepository {
     fn create(&self, item: &NewTable) -> ServerResult<Table>;
     fn get(&self, id: &i32) -> ServerResult<Table>;
+    fn checkout(&self, id: &i32, total: &i32) -> ServerResult<()>;
     fn all(&self) -> ServerResult<Vec<Table>>;
 }
 
