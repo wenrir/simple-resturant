@@ -114,7 +114,10 @@ make run
 To run a specific module
 #+begin_src sh
 make run server
+
+make run client
 #+end_src
+
 *** Local
 #+name: Both server and client
 #+begin_src sh
