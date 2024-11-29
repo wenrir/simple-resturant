@@ -5,9 +5,11 @@ use inquire::Text;
 use inquire::{validator::Validation, CustomType};
 use inquire::{InquireError, Select};
 use log::{error, info};
+use rand::Rng;
 use reqwest::Client;
 use serde_json::json;
 use std::{env::var, process::exit};
+use tokio_util::task::TaskTracker;
 
 const HOST_URL: &str = "localhost";
 const HOST_PORT: &str = "8080";
@@ -77,6 +79,7 @@ async fn main() {
             "Item operations",
             "Table operations",
             "Order operations",
+            "Simulation",
             "Exit",
         ];
 
@@ -295,6 +298,54 @@ async fn main() {
                         },
                         Err(_) => error!("There was an error, please try again"),
                     }
+                }
+                "Simulation" => {
+                    let nclients: usize = iprompt!(
+                        usize,
+                        "How many clients to simulate? ",
+                        "Number of clients to simulate",
+                        "1"
+                    );
+                    let tracker = TaskTracker::new();
+
+                    let items = vec![
+                        json!({ "description": "Yakitori", "price": 3 }),
+                        json!({ "description": "Takoyaki", "price": 3 }),
+                        json!({ "description": "Highball", "price": 2 }),
+                    ];
+                    let itemurl = format!("{}/items", base_url);
+                    for item in items {
+                        post!(client, &itemurl, item);
+                    }
+                    for id in 1..=nclients {
+                        // TODO don't clone ...
+                        let cloned_client = client.clone();
+                        let cloned_url = base_url.clone();
+                        let mut rng = rand::thread_rng();
+                        let num_orders = rng.gen_range(1..15);
+                        let mut items = vec![];
+                        for _ in 0..num_orders {
+                            items.push(json!({
+                                "table_id": id,
+                                "item_id": rng.gen_range(1..3),
+                                "quantity": rng.gen_range(1..5)
+                            }));
+                        }
+                        let checkin_url = format!("{}/tables/check_in", cloned_url);
+                        let checkout_url = format!("{}/tables/{}/check_out", base_url, id);
+                        let order_url = format!("{}/orders", cloned_url);
+                        tracker.spawn(async move {
+                            post!(cloned_client, &checkin_url, json!({"table_number": id,}));
+                            for item in items {
+                                post!(cloned_client, &order_url, json!([item]));
+                                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                            }
+                            post!(cloned_client, &checkout_url, json!({}));
+                        });
+                    }
+                    tracker.close();
+
+                    tracker.wait().await;
                 }
                 "Exit" => {
                     info!("Exiting... Goodbye!");
