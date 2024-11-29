@@ -2,7 +2,7 @@
 
 use application::log::setup_logger;
 use fastrace::prelude::{LocalSpan, Span, SpanContext};
-use infrastructure::server::Server;
+use infrastructure::{db::get_connection_pool, server::Server};
 use log::{error, info};
 mod adapters;
 mod application;
@@ -18,7 +18,8 @@ async fn main() {
         let root = Span::root("server", parent);
         let _ = root.set_local_parent();
         let _ = LocalSpan::enter_with_local_parent("Setup");
-        let server = Server::new().await.expect("Unable to setup server!");
+        let pool = get_connection_pool();
+        let server = Server::new(pool).await.expect("Unable to setup server!");
         let _ = LocalSpan::enter_with_local_parent("App");
 
         match server.run().await {

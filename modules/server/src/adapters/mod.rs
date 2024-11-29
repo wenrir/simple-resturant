@@ -14,16 +14,12 @@ use std::env::var;
 use utoipa::ToSchema;
 
 #[macro_export]
+
 /// Macro to connect to database as a mutable reference (otherwise return ServerError)
 macro_rules! db_conn {
-    () => {{
-        let conn = db_connect();
-        if conn.is_err() {
-            return Err(ServerError {
-                error: "Unable to connect to db!".to_string(),
-            });
-        }
-        &mut conn.expect("Unable to connect to db")
+    ($self:ident) => {{
+        let conn = $self.connection_pool.clone();
+        &mut conn.get().expect("Unable to connect to db")
     }};
 }
 
