@@ -321,9 +321,7 @@ async fn delete_table_order(
     State(state): State<ServerState>,
     Path(ids): Path<(i32, i32)>,
 ) -> ServerResult<StatusCode> {
-    match state.order_repository.delete_customer_order(&ids.0, &ids.1) {
     match state.order_repository.delete_table_order(&ids.0, &ids.1) {
-
         Ok(_) => Ok(StatusCode::NO_CONTENT),
         Err(err) => Err(err),
     }
