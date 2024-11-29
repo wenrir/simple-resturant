@@ -48,7 +48,7 @@ async fn is_checked_table_checked_in(req: Request, next: Next) -> ServerResult<R
 
 /// Find order by table number.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         get,
         request_body = i32,
@@ -70,7 +70,7 @@ async fn get_order_by_id(
 
 /// Find all orders
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}")]
+#[logcall::logcall(input = "state = {state:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/orders/:id",
@@ -88,7 +88,7 @@ async fn get_orders(State(state): State<ServerState>) -> ServerResult<Json<Order
 
 /// Create an order.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}, reqs = {reqs:?}")]
+#[logcall::logcall(input = "state = {state:?}, reqs = {reqs:?}")]
 #[utoipa::path(
         post,
         request_body = Vec<OrderCreateRequest>,
@@ -133,7 +133,7 @@ async fn create_order(
 
 /// Delete an order.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         delete,
         request_body = i32,
@@ -163,7 +163,7 @@ fn order_routes() -> Router<ServerState> {
 // TODO These can be converted to macros
 /// Get items.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}")]
+#[logcall::logcall(input = "state = {state:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/items",
@@ -181,7 +181,7 @@ async fn get_items(State(state): State<ServerState>) -> ServerResult<Json<ItemsR
 
 /// Get specific item.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/items/:id",
@@ -202,7 +202,7 @@ async fn get_item(
 
 /// Create item.
 #[fastrace::trace]
-#[logcall::logcall("info", input = "state = {state:?}, req = {req:?}")]
+#[logcall::logcall(input = "state = {state:?}, req = {req:?}")]
 #[utoipa::path(
         post,
         request_body = ItemCreateRequest,
@@ -235,7 +235,7 @@ fn item_routes() -> Router<ServerState> {
 }
 
 /// Get table.
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/tables/:id",
@@ -255,7 +255,7 @@ async fn get_table(
 }
 
 /// Get table orders.
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/tables/:id/orders",
@@ -275,7 +275,7 @@ async fn get_table_orders(
 }
 
 /// Get table order.
-#[logcall::logcall("info", input = "state = {state:?}, ids = {ids:?}")]
+#[logcall::logcall(input = "state = {state:?}, ids = {ids:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/tables/:id/orders/:id",
@@ -298,7 +298,7 @@ async fn get_table_order(
 }
 
 /// Get table items.
-#[logcall::logcall("info", input = "state = {state:?}, ids = {ids:?}")]
+#[logcall::logcall(input = "state = {state:?}, ids = {ids:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/tables/:id/items/:id",
@@ -332,7 +332,7 @@ async fn get_table_items(
 }
 
 /// Delete table order.
-#[logcall::logcall("info", input = "state = {state:?}, ids = {ids:?}")]
+#[logcall::logcall(input = "state = {state:?}, ids = {ids:?}")]
 #[utoipa::path(
         delete,
         path = "/api/v1/tables/:id/orders/:id",
@@ -352,7 +352,7 @@ async fn delete_table_order(
 }
 
 /// Get tables.
-#[logcall::logcall("info", input = "state = {state:?}")]
+#[logcall::logcall(input = "state = {state:?}")]
 #[utoipa::path(
         get,
         path = "/api/v1/tables",
@@ -369,7 +369,7 @@ async fn get_tables(State(state): State<ServerState>) -> ServerResult<Json<Table
 }
 
 /// Checks in a table.
-#[logcall::logcall("info", input = "state = {state:?}, req = {req:?}")]
+#[logcall::logcall(input = "state = {state:?}, req = {req:?}")]
 #[utoipa::path(
         post,
         request_body = TableCreateRequest,
@@ -396,7 +396,7 @@ async fn create_table(
 }
 
 /// Checks out a table.
-#[logcall::logcall("info", input = "state = {state:?}, id = {id:?}")]
+#[logcall::logcall(input = "state = {state:?}, id = {id:?}")]
 #[utoipa::path(
         post,
         path = "/api/v1/tables/:id/check_out",
