@@ -8,7 +8,7 @@ use diesel::r2d2::Pool;
 use diesel::PgConnection;
 
 /// Server state.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct ServerState {
     pub(crate) order_repository: OrderFactory,
     pub(crate) item_repository: ItemFactory,
