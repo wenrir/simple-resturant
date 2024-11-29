@@ -33,7 +33,6 @@ command="$(CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY)/target/release/server"
 workspace=false
 command = "cargo"
 args = ["run", "-p", "client"]
-dependencies=["migrate-redo"]
 
 [tasks.client-bin]
 workspace=false

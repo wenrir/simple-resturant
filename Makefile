@@ -20,6 +20,16 @@ task: CARGO-exists DIESEL-exists check-args
 		echo "Please provide arguments to this rule." >&2; \
 		exit 1; \
 	fi
+
+	@if [ "$(args)" = "run" ]; then \
+		$(compose) down --volumes; \
+		$(compose) up db -d; \
+		echo "Waiting for the database to be ready..."; \
+		until docker compose logs db | grep -q "PostgreSQL init process complete"; do \
+			echo "Database is not ready yet. Retrying in 2 seconds..."; \
+			sleep 2; \
+		done; \
+	fi
 	@cargo make --makefile $(PROJECT_DIR)/modules/Makefile.toml -t $(args) --cwd $(PROJECT_DIR)/modules
 
 .PHONY: run

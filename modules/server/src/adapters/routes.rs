@@ -478,10 +478,12 @@ pub(crate) fn routes(state: ServerState) -> Router {
 
 #[cfg(test)]
 mod tests {
+    use crate::infrastructure::db::get_connection_pool;
+
     use super::*;
     use axum_test::TestServer;
     fn get_test_routes() -> Router {
-        routes(ServerState::new().expect("unable to create server state."))
+        routes(ServerState::new(get_connection_pool()).expect("unable to create server state."))
     }
     use serde_json::json;
     fn build_test_server() -> TestServer {

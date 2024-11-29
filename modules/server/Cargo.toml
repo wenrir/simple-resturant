@@ -16,7 +16,7 @@ anyhow = "1.0.93"
 async-trait = "0.1.83"
 axum = { version = "0.7.9", features = ["macros", "ws"] }
 chrono = "0.4.38"
-diesel = { version = "2.2.4", features = ["postgres"] }
+diesel = { version = "2.2.4", features = ["postgres", "r2d2"] }
 diesel_migrations = "2.2.0"
 env_logger = "0.11.5"
 fastrace = "0.7.4"
