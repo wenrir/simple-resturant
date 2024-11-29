@@ -13,9 +13,8 @@ use serde::Serialize;
 use std::env::var;
 use utoipa::ToSchema;
 
-#[macro_export]
-
 /// Macro to connect to database as a mutable reference (otherwise return ServerError)
+#[macro_export]
 macro_rules! db_conn {
     ($self:ident) => {{
         let conn = $self.connection_pool.clone();
