@@ -1,7 +1,7 @@
 //! mod
-pub(crate) mod table;
 pub(crate) mod item;
 pub(crate) mod order;
+pub(crate) mod table;
 // @generated automatically by Diesel CLI.
 
 diesel::table! {

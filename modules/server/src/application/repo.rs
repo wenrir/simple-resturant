@@ -1,9 +1,9 @@
 use crate::{
     adapters::ServerResult, // Todo, move me out of adapter.
     domain::entities::{
-        table::{Table, NewTable},
         item::{Item, NewItem},
         order::{NewOrder, Order},
+        table::{NewTable, Table},
     },
 };
 use async_trait::async_trait;

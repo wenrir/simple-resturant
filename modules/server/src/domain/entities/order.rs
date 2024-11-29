@@ -1,6 +1,6 @@
 //! Order
 
-use super::{table::Table, item::Item, orders};
+use super::{item::Item, orders, table::Table};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;

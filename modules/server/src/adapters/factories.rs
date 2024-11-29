@@ -7,11 +7,11 @@ use async_trait::async_trait;
 use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
 
 use crate::application::features::{get_all_active_tables, get_table};
-use crate::application::repo::{TableRepository, ItemRepository, OrderRepository};
+use crate::application::repo::{ItemRepository, OrderRepository, TableRepository};
 use crate::db_conn;
-use crate::domain::entities::table::{Table, NewTable};
 use crate::domain::entities::item::{Item, NewItem};
 use crate::domain::entities::order::{NewOrder, Order};
+use crate::domain::entities::table::{NewTable, Table};
 
 use super::{db_connect, ServerError, ServerResult};
 
@@ -233,10 +233,7 @@ impl TableRepository for TableFactory {
     fn all(&self) -> ServerResult<Vec<Table>> {
         use crate::domain::entities::tables::dsl::*;
         let conn = db_conn!();
-        let table = tables
-            .select(Table::as_select())
-            .load(conn)
-            .optional();
+        let table = tables.select(Table::as_select()).load(conn).optional();
         match table {
             Ok(Some(c)) => Ok(c),
             Ok(None) => Ok(vec![]),

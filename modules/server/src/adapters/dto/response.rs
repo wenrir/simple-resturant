@@ -2,9 +2,9 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::domain::entities::table::Table;
 use crate::domain::entities::item::Item;
 use crate::domain::entities::order::Order;
+use crate::domain::entities::table::Table;
 
 // TODO move these to a shared lib.
 #[derive(Debug, Deserialize, Serialize, ToSchema)]

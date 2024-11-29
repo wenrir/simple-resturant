@@ -3,7 +3,7 @@
 use anyhow::Result;
 use serde::Deserialize;
 
-use super::factories::{TableFactory, ItemFactory, OrderFactory};
+use super::factories::{ItemFactory, OrderFactory, TableFactory};
 
 /// Server state.
 #[derive(Clone, Deserialize)]
