@@ -1,0 +1,9 @@
+services:
+  server:
+    image: ghcr.io/wenrir/simple-restaurant-server:${RELEASE:-latest}
+    platform: linux/x86_64
+    network_mode: "host" # TODO only expose necessary ports.
+  client:
+    image: ghcr.io/wenrir/simple-restaurant-client:${RELEASE:-latest}
+    platform: linux/x86_64
+    network_mode: "host" # TODO only expose necessary ports.
