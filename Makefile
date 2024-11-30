@@ -13,6 +13,9 @@ CARGO-exists: ; @which cargo > /dev/null 2>&1
 DIESEL-exists: ; @which diesel > /dev/null 2>&1
 DOCKER-exists: ; @which docker > /dev/null 2>&1
 
+down: 
+	@$(compose) down --volumes
+
 .PHONY: task
 ## Run a specific task inside the cargo makefile, modules/Makefile.toml
 task: CARGO-exists DIESEL-exists check-args
@@ -35,8 +38,7 @@ task: CARGO-exists DIESEL-exists check-args
 .PHONY: run
 ## Run Application using docker.
 ## To run Specific Module in docker, use args=<MODULE_NAME> (e.g., server/client)
-run: DOCKER-exists
-	$(compose) down --volumes
+run: DOCKER-exists down
 	@if [ -n "$(args)" ]; then \
 		$(compose) run --build --rm $(args); \
 	else \
@@ -46,8 +48,7 @@ run: DOCKER-exists
 
 .PHONY: test
 ## Run test with test db.
-test: DOCKER-exists DIESEL-exists
-	$(compose) down --volumes
+test: DOCKER-exists DIESEL-exists down
 	$(compose) up db -d
 	@until docker compose logs db | grep -q "PostgreSQL init process complete"; do \
 		echo "Database is not ready yet. Retrying in 2 seconds..."; \
@@ -58,7 +59,7 @@ test: DOCKER-exists DIESEL-exists
 
 .PHONY: run-release
 ## Run release images
-run-release: DOCKER-exists
+run-release: DOCKER-exists down
 	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) up --detach
 
 .PHONY: help

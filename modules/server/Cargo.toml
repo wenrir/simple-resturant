@@ -59,6 +59,3 @@ cargo-make = "0.37.23"
 
 [package.metadata.cargo-udeps.ignore]
 development = ["cargo-make"]
-
-[target.x86_64-unknown-linux-musl]
-linker = "x86_64-linux-musl-gcc"
