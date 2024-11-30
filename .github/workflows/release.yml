@@ -51,23 +51,15 @@ jobs:
           MINIFY: "yes"
           ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
-      - name: Debug Build Output
-        run: |
-          echo "BUILT_ARCHIVE: ${{ steps.comp.outputs.BUILT_ARCHIVE }}"
-          ls -l $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")
-          echo "====="
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-
       - name: Release upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls modules/${{ matrix.module }}/target/release
-          echo "====="
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/
-          echo "====="
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release
-          echo "====="
+          mkdir -p modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+          mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
+            modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+
+          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
           sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
           sudo tar --no-same-owner -xvf ${{ steps.compile.outputs.BUILT_ARCHIVE }} -C modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
 
