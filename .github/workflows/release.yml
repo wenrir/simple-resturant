@@ -38,6 +38,9 @@ jobs:
         run: |
           VER=$(echo "$VERSION" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
+      - name: Install libpq # Otherwise linking breaks.
+        run: |
+          sudo apt install libpq-dev
       - name: Release/Compile
         uses: rust-build/rust-build.action@v1.4.5
         id: comp
