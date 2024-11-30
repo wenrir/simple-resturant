@@ -90,6 +90,9 @@ apt install libpq-dev
 #+end_src
 
 ** Overview
+
+*For easy demonstration of the server<>client interaction, please consider selecting the "Simulation" option in the clients menu*
+
 The project comes with a Makefile that has a few commands to help you run the project.
 Please refer to the help rule for more information about the specifics of each rule.
 
