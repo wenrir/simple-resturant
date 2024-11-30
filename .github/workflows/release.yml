@@ -103,7 +103,7 @@ jobs:
           context: ./modules
           target: release
           build-args: |
-            MODULE_NAME=${{ matrix.module }}
+            MODULE=${{ matrix.module }}
           load: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
