@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -y install libsqlite3-dev libpq-dev libmysqlclient-dev
+          sudo apt-get -y install libsqlite3-dev libpq-dev libmysqlclient-dev postgresql valgrind
       - name: Release/Compile
         uses: rust-build/rust-build.action@v1.4.5
         id: comp
