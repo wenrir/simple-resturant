@@ -36,9 +36,7 @@ jobs:
           fi
       - name: Update Cargo.toml version
         run: |
-          VERSION=$(echo "${GITHUB_REF#refs/*/}" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VERSION\"/" modules/${{ matrix.module }}/Cargo.toml
-          cat modules/${{ matrix.module }}/Cargo.toml
       - name: Release/Compile
         uses: rust-build/rust-build.action@v1.4.5
         id: comp
