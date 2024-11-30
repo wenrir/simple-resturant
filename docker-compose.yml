@@ -9,12 +9,18 @@ services:
       service: server
       file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
     network_mode: "host" # TODO only expose necessary ports.
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
   client:
     container_name: restaurant-client
     extends:
       service: client
       file: ./modules/${OVERRIDE_COMPOSE:-compose.yml}
     network_mode: "host" # TODO only expose necessary ports.
+    depends_on:
+      - server
   db:
     image: postgres:latest
     container_name: restaurant-db

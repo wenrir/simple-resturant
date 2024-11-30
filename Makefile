@@ -36,10 +36,12 @@ task: CARGO-exists DIESEL-exists check-args
 ## Run Application using docker.
 ## To run Specific Module in docker, use args=<MODULE_NAME> (e.g., server/client)
 run: DOCKER-exists
+	$(compose) down --volumes
 	@if [ -n "$(args)" ]; then \
 		$(compose) run --build --rm $(args); \
 	else \
-		$(compose) up --build -d; \
+		$(compose) build ;\
+		$(compose) run --rm client; \
 	fi
 
 .PHONY: test
