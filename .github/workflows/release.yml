@@ -56,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
+          sudo mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
             modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
 
           ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
