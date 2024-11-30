@@ -58,9 +58,9 @@ jobs:
           ls modules/
           ls modules/${{ matrix.module }}/
           ls modules/${{ matrix.module }}/target/
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}
-          sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/matrix.module }}
-          sudo tar --no-same-owner -xvf ${{ steps.compile.outputs.BUILT_ARCHIVE }} -C modules/${{ matrix.module }}/target/${{ matrix.target }}/matrix.module }}
+          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+          sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
+          sudo tar --no-same-owner -xvf ${{ steps.compile.outputs.BUILT_ARCHIVE }} -C modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
