@@ -34,10 +34,16 @@ macro_rules! iprompt {
 
 /// HTTP Get macro.
 macro_rules! get {
-    ($client:expr, $url:expr) => {{
+    ($client:expr, $url:expr, $msg:expr) => {{
         let response = $client.get($url).send().await;
         match response {
-            Ok(res) => println!("{:?}", res.text().await),
+            Ok(res) => {
+                let text = res
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Failed to read response".to_string());
+                println!("{:?}: {:?}", $msg, text)
+            }
             Err(err) => eprintln!("Error during GET: {:?}", err),
         }
     }};
@@ -45,10 +51,16 @@ macro_rules! get {
 
 /// HTTP Post macro.
 macro_rules! post {
-    ($client:expr, $url:expr, $json_body:expr) => {{
+    ($client:expr, $url:expr, $json_body:expr, $msg:expr) => {{
         let response = $client.post($url).json(&$json_body).send().await;
         match response {
-            Ok(res) => println!("{:?}", res.text().await),
+            Ok(res) => {
+                let text = res
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Failed to read response".to_string());
+                println!("{:?}: {:?}", $msg, text)
+            }
             Err(err) => eprintln!("Error during POST: {:?}", err),
         }
     }};
@@ -56,10 +68,16 @@ macro_rules! post {
 
 /// HTTP Delete macro.
 macro_rules! delete {
-    ($client:expr, $url:expr) => {{
+    ($client:expr, $url:expr, $msg:expr) => {{
         let response = $client.delete($url).send().await;
         match response {
-            Ok(res) => println!("{:?}", res.text().await),
+            Ok(res) => {
+                let text = res
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Failed to read response".to_string());
+                println!("{:?}: {:?}", $msg, text)
+            }
             Err(err) => eprintln!("Error during DELETE: {:?}", err),
         }
     }};
@@ -102,7 +120,7 @@ async fn main() {
                     match a {
                         Ok(c) => match c {
                             "Back" => {}
-                            "Add item(s)" => {
+                            "Add item" => {
                                 let description = Text::new("Enter item description:")
                                     .prompt()
                                     .expect("Unable to read description!");
@@ -117,18 +135,19 @@ async fn main() {
                                     json!({
                                         "description": description.to_string(),
                                         "price": price,
-                                    })
+                                    }),
+                                    "Added item"
                                 );
                             }
                             "List items" => {
                                 let url = format!("{}/items", base_url);
-                                get!(client, &url);
+                                get!(client, &url, "Items");
                             }
                             "Get item by id" => {
                                 let id: i32 =
                                     iprompt!(i32, "Enter item id:", "Item ID to fetch", "0");
                                 let url = format!("{}/items/{}", base_url, id);
-                                get!(client, &url);
+                                get!(client, &url, "Items");
                             }
                             _ => {}
                         },
@@ -155,7 +174,7 @@ async fn main() {
                             "Back" => {}
                             "Get all tables" => {
                                 let url = format!("{}/tables", base_url);
-                                get!(client, &url);
+                                get!(client, &url, "All tables");
                             }
                             "Get table information (including orders)" => {
                                 let table_id: i32 = iprompt!(
@@ -166,12 +185,12 @@ async fn main() {
                                 );
                                 {
                                     let url = format!("{}/tables/{}", base_url, table_id);
-                                    get!(client, &url);
+                                    get!(client, &url, "Table information");
                                 }
                                 println!("Reading orders for table {:?}", table_id);
                                 {
                                     let url = format!("{}/tables/{}/orders", base_url, table_id);
-                                    get!(client, &url);
+                                    get!(client, &url, "Table orders");
                                 }
                             }
                             "Get order information for table" => {
@@ -185,7 +204,7 @@ async fn main() {
                                     iprompt!(i32, "Enter order id:", "Item ID to fetch", "1");
                                 let url =
                                     format!("{}/tables/{}/items/{}", base_url, table_id, item_id);
-                                get!(client, &url);
+                                get!(client, &url, "Table order information");
                             }
                             "Check in new table" => {
                                 let url = format!("{}/tables/check_in", base_url);
@@ -197,7 +216,12 @@ async fn main() {
                                     "0"
                                 );
 
-                                post!(client, &url, json!({"table_number": table,}));
+                                post!(
+                                    client,
+                                    &url,
+                                    json!({"table_number": table,}),
+                                    "Checked in table"
+                                );
                             }
                             "Check out table" => {
                                 let table: i32 = iprompt!(
@@ -208,7 +232,7 @@ async fn main() {
                                 );
                                 let url = format!("{}/tables/{}/check_out", base_url, table);
 
-                                post!(client, &url, json!({}));
+                                post!(client, &url, json!({}), "Checked out table");
                             }
                             "Delete table order" => {
                                 let table_id: i32 = iprompt!(
@@ -221,7 +245,7 @@ async fn main() {
                                     iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
                                 let url =
                                     format!("{}/tables/{}/orders/{}", base_url, table_id, order_id);
-                                delete!(client, &url);
+                                delete!(client, &url, "Deleted order");
                             }
                             _ => {}
                         },
@@ -287,23 +311,23 @@ async fn main() {
                                         break;
                                     }
                                 }
-                                post!(client, &url, json!(items));
+                                post!(client, &url, json!(items), "Created orders");
                             }
                             "Get all orders" => {
                                 let url = format!("{}/orders", base_url);
-                                get!(client, &url);
+                                get!(client, &url, "All orders");
                             }
                             "Get order by id" => {
                                 let order_id: i32 =
                                     iprompt!(i32, "Enter order id:", "Order ID to find", "1");
                                 let url = format!("{}/orders/{}", base_url, order_id);
-                                get!(client, &url);
+                                get!(client, &url, "Order");
                             }
                             "Delete order" => {
                                 let order_id: i32 =
                                     iprompt!(i32, "Enter order id:", "Order ID to delete", "1");
                                 let url = format!("{}/orders/{}", base_url, order_id);
-                                delete!(client, &url);
+                                delete!(client, &url, "Order deleted");
                             }
                             _ => {}
                         },
@@ -326,7 +350,7 @@ async fn main() {
                     ];
                     let itemurl = format!("{}/items", base_url);
                     for item in items {
-                        post!(client, &itemurl, item);
+                        post!(client, &itemurl, item, "Added items to db");
                     }
                     for id in 1..=nclients {
                         // TODO don't clone ...
@@ -346,12 +370,27 @@ async fn main() {
                         let checkout_url = format!("{}/tables/{}/check_out", base_url, id);
                         let order_url = format!("{}/orders", cloned_url);
                         tracker.spawn(async move {
-                            post!(cloned_client, &checkin_url, json!({"table_number": id,}));
+                            post!(
+                                cloned_client,
+                                &checkin_url,
+                                json!({"table_number": id,}),
+                                format!("Checked in table {:?}", id)
+                            );
                             for item in items {
-                                post!(cloned_client, &order_url, json!([item]));
+                                post!(
+                                    cloned_client,
+                                    &order_url,
+                                    json!([item]),
+                                    format!("Added item {:?} for table {:?}", item, id)
+                                );
                                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                             }
-                            post!(cloned_client, &checkout_url, json!({}));
+                            post!(
+                                cloned_client,
+                                &checkout_url,
+                                json!({}),
+                                format!("Checked out table, table total")
+                            );
                         });
                     }
                     tracker.close();
