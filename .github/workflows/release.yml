@@ -48,7 +48,7 @@ jobs:
           RUSTTARGET: ${{ matrix.target }}
           SRC_DIR: "modules/${{ matrix.module }}"
           ARCHIVE_TYPES: ${{ matrix.archive }}
-          MINIFY: "yes"
+          #MINIFY: "yes"
           ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
       - name: Release upload
