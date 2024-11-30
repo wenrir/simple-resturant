@@ -56,10 +56,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ls modules/
-          ls modules/target/
-          ls modules/target/${{ matrix.target }}/
-          ls modules/target/${{ matrix.target }}/release
-          ls modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+          ls modules/${{ matrix.target }}/
+          ls modules/${{ matrix.target }}/target/
           sudo chmod -R 755 modules/target/${{ matrix.target }}/release/${{ matrix.module }}
           sudo tar --no-same-owner -xvf ${{ steps.compile.outputs.BUILT_ARCHIVE }} -C modules/target/${{ matrix.target }}/release/${{ matrix.module }}
 
