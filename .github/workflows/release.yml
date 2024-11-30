@@ -51,6 +51,13 @@ jobs:
           MINIFY: "yes"
           ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
+      - name: Debug Build Output
+        run: |
+          echo "BUILT_ARCHIVE: ${{ steps.comp.outputs.BUILT_ARCHIVE }}"
+          ls -l $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")
+          echo "====="
+          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+
       - name: Release upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
