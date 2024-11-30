@@ -54,13 +54,10 @@ jobs:
           working-directory: "modules/${{ matrix.module }}"
           archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
-      - name: Prepare release folder # hack... not sure why the binary is not inside modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+      - name: Prepare release folder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          sudo mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
-            modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
           ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
           sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
 
