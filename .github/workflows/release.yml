@@ -3,12 +3,12 @@ name: "Release workflow"
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   release:
     name: ${{ matrix.target }} - Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     strategy:
       fail-fast: true
       matrix:
@@ -46,6 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ls modules/
           ls modules/target/
           ls modules/target/${{ matrix.target }}/
           ls modules/target/${{ matrix.target }}/release
