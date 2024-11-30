@@ -49,6 +49,7 @@ jobs:
           SRC_DIR: "modules/${{ matrix.module }}"
           ARCHIVE_TYPES: ${{ matrix.archive }}
           MINIFY: "yes"
+          STATIC_LINKING: false
           ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
       - name: Prepare release folder # hack... not sure why the binary is not inside modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
