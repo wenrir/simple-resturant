@@ -51,17 +51,15 @@ jobs:
           MINIFY: "yes"
           ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
-      - name: Release upload
+      - name: Prepare release folder # hack... not sure why the binary is not inside modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
           sudo mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
             modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-
           ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
           sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
-          sudo tar --no-same-owner -xvf ${{ steps.compile.outputs.BUILT_ARCHIVE }} -C modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
