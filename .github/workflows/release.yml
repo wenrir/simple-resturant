@@ -48,7 +48,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          TOOLCHAIN_VERSION: "1.79.0"
+          #TOOLCHAIN_VERSION: "1.78.0"
           RUSTTARGET: ${{ matrix.target }}
           SRC_DIR: "modules/${{ matrix.module }}"
           ARCHIVE_TYPES: ${{ matrix.archive }}
