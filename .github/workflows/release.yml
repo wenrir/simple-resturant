@@ -38,23 +38,21 @@ jobs:
         run: |
           VER=$(echo "$VERSION" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install libsqlite3-dev libpq-dev libmysqlclient-dev postgresql valgrind
-      - name: Release/Compile
-        uses: rust-build/rust-build.action@v1.4.5
-        id: comp
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and release
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          TOOLCHAIN_VERSION: "1.79.0"
-          RUSTTARGET: ${{ matrix.target }}
-          SRC_DIR: "modules/${{ matrix.module }}"
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-          MINIFY: "yes"
-          STATIC_LINKING: false
-          ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
+          target: ${{ matrix.target }}
+          args: "--release"
+          strip: true
+          toolchain: "1.79.0"
+          working-directory: "modules/${{ matrix.module }}"
+      - name: Publish artifacts and release
+        uses: houseabsolute/actions-rust-release@v0
+        with:
+          executable-name: ${{ matrix.module }}
+          target: ${{ matrix.target }}
+          working-directory: "modules/${{ matrix.module }}"
+          archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
       - name: Prepare release folder # hack... not sure why the binary is not inside modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
         env:
