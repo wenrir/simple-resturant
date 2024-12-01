@@ -12,15 +12,17 @@ on:
 jobs:
   release:
     name: ${{ matrix.target }} - Release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: true
       matrix:
         include:
-          - target: x86_64-unknown-linux-musl
+          - target: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-20.04
             archive: tar.gz
             module: "server"
-          - target: x86_64-unknown-linux-musl
+          - target: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-20.04
             archive: tar.gz
             module: "client"
     steps:
@@ -38,28 +40,35 @@ jobs:
         run: |
           VER=$(echo "$VERSION" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
-      - name: Release/Compile
-        uses: rust-build/rust-build.action@v1.4.5
-        id: comp
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          TOOLCHAIN_VERSION: "1.79.0"
-          RUSTTARGET: ${{ matrix.target }}
-          SRC_DIR: "modules/${{ matrix.module }}"
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-          MINIFY: "yes"
-          ARCHIVE_NAME: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
 
-      - name: Prepare release folder # hack... not sure why the binary is not inside modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
+      - name: Build and release
+        uses: houseabsolute/actions-rust-cross@v0
+        with:
+          target: ${{ matrix.target }}
+          args: "--release --verbose"
+          toolchain: "nightly"
+          working-directory: "modules/${{ matrix.module }}"
+
+      - name: Prepare release folder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          sudo mv $(dirname "${{ steps.comp.outputs.BUILT_ARCHIVE }}")/${{ matrix.module }} \
-            modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
+          ls modules/
+          echo "====="
+          ls modules/target
+          echo "====="
+          ls modules/target/${{ matrix.target }}          
+          echo "====="
+          ls modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+          sudo chmod -R 755 modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+      - name: Upload binaries to release
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+          asset_name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
+          tag: ${{ env.VERSION }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
