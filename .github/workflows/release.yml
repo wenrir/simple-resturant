@@ -42,7 +42,7 @@ jobs:
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
       - name: Install musl tools
         run: |
-          apt install musl-tools
+          sudo apt-get install -y musl-tools
       - name: Build and release
         uses: houseabsolute/actions-rust-cross@v0
         with:
