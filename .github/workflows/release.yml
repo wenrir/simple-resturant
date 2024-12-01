@@ -38,8 +38,6 @@ jobs:
         run: |
           VER=$(echo "$VERSION" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
-      - name: Get required packages
-        run: sudo apt install g++ cmake build-essentials pkg-config libssl-dev
       - name: Build and release
         uses: houseabsolute/actions-rust-cross@v0
         with:
