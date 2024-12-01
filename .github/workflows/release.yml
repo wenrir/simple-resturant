@@ -71,7 +71,7 @@ jobs:
           working-directory: "modules/"
           target: ${{ matrix.target }}
           archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
-          extra-files: "" 
+          changes-file: null
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
