@@ -13,6 +13,6 @@ RUN --mount=type=bind,source=./modules/${MODULE},target=/${MODULE}/,readwrite\
     apt-get install --no-install-recommends --assume-yes ${ADDITIONAL_PACKAGES} \
  && cargo install --path .
 
-FROM alpine:latest as release
+FROM rust:alpine as release
 ARG MODULE
 COPY target/x86_64-unknown-linux-gnu/release/${MODULE} /app
