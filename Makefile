@@ -60,7 +60,8 @@ test: DOCKER-exists DIESEL-exists down
 .PHONY: run-release
 ## Run release images
 run-release: DOCKER-exists down
-	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) up --detach
+	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) up db server --detach
+	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) run --rm client
 
 .PHONY: help
 help:
