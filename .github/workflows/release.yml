@@ -57,6 +57,7 @@ jobs:
           target: ${{ matrix.target }}
           working-directory: "modules/${{ matrix.module }}"
           archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
+          changes-file: null
 
       - name: Prepare release folder
         env:
