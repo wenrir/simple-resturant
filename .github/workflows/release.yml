@@ -40,9 +40,7 @@ jobs:
         run: |
           VER=$(echo "$VERSION" | sed 's/[^0-9.]//g')
           sed -i "s/^version = .*/version = \"$VER\"/" modules/${{ matrix.module }}/Cargo.toml
-      - name: Install musl tools
-        run: |
-          sudo apt-get install -y musl-tools
+
       - name: Build and release
         uses: houseabsolute/actions-rust-cross@v0
         with:
@@ -63,15 +61,14 @@ jobs:
           echo "====="
           ls modules/target/${{ matrix.target }}/release/${{ matrix.module }}
           sudo chmod -R 755 modules/target/${{ matrix.target }}/release/${{ matrix.module }}
-          
-      - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
+      - name: Upload binaries to release
+        if: ${{ github.event_name == "release" }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          executable-name: ${{ matrix.module }}
-          working-directory: "modules/"
-          target: ${{ matrix.target }}
-          archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
-          changes-file: null
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+          asset_name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
+          tag: ${{ env.VERSION }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
