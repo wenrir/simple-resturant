@@ -55,6 +55,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ls target/
+          echo "====="
+          ls modules/
+          echo "====="
+          ls target/${{ matrix.module }}
+          echo "====="
           ls modules/${{ matrix.module }}
           echo "======"
           ls modules/${{ matrix.module }}/target
