@@ -61,29 +61,15 @@ jobs:
           echo "====="
           ls modules/target/${{ matrix.target }}          
           echo "====="
-          ls modules/target/${{ matrix.target }}/release
-          echo "====="
-          ls target/
-          echo "====="
-          ls modules/
-          echo "====="
-          ls target/${{ matrix.module }}
-          echo "====="
-          ls modules/${{ matrix.module }}
-          echo "======"
-          ls modules/${{ matrix.module }}/target
-          echo "======"
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}
-          echo "======"
-          ls modules/${{ matrix.module }}/target/${{ matrix.target }}/release/
-          sudo chmod -R 755 modules/${{ matrix.module }}/target/${{ matrix.target }}/release/${{ matrix.module }}
+          ls modules/target/${{ matrix.target }}/release/${{ matrix.module }}
+          sudo chmod -R 755 modules/target/${{ matrix.target }}/release/${{ matrix.module }}
           
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         with:
           executable-name: ${{ matrix.module }}
+          working-directory: "modules/"
           target: ${{ matrix.target }}
-          working-directory: "modules/${{ matrix.module }}"
           archive-name: "simple-restaurant-${{ matrix.module }}-${{ env.VERSION }}-${{ matrix.target }}"
           extra-files: "" 
 
