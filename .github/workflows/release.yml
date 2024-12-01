@@ -62,7 +62,7 @@ jobs:
           ls modules/target/${{ matrix.target }}/release/${{ matrix.module }}
           sudo chmod -R 755 modules/target/${{ matrix.target }}/release/${{ matrix.module }}
       - name: Upload binaries to release
-        if: ${{ github.event_name == "release" }}
+        if: github.event_name == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
