@@ -60,7 +60,8 @@ test: DOCKER-exists DIESEL-exists down
 .PHONY: run-release
 ## Run release images
 run-release: DOCKER-exists down
-	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) up --detach
+	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) run --rm -d server bash -c "apt update && apt install -y libpq-dev && /app"
+	@OVERRIDE_COMPOSE=release.yml RELEASE=$(or $(args),latest) $(compose) run --rm -it client bash -c "/app"
 
 .PHONY: help
 help:
