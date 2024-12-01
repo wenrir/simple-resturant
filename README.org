@@ -91,7 +91,11 @@ apt install libpq-dev
 
 ** Overview
 
-*For easy demonstration of the server<>client interaction, please consider selecting the "Simulation" option in the clients menu*
+*For easy demonstration of the server<>client interaction, please consider running latest release and selecting the "Simulation" option in the clients menu.*
+#+name: Easy demo
+#+begin_src sh
+make run-release
+#+end_src
 
 The project comes with a Makefile that has a few commands to help you run the project.
 Please refer to the help rule for more information about the specifics of each rule.
